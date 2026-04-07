@@ -1,5 +1,5 @@
 import { JWT } from "next-auth/jwt"
-import { apiRequest } from "./api-client-http";
+import { authService } from "./services/auth.service";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { DefaultUser, DefaultSession, User, Session } from "next-auth";
 
@@ -11,7 +11,6 @@ declare module "next-auth" {
             name: string;
             email: string;
             role: string;
-            companyId: string;
             access_token: string;
         } & DefaultSession["user"];
     }
@@ -21,7 +20,6 @@ declare module "next-auth" {
         name: string
         email: string
         role: string
-        companyId: string
         access_token: string
     }
 }
@@ -39,25 +37,33 @@ export const authOptions = {
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null;
 
-                const data = await apiRequest<{ access_token: string; user: any }>({
-                    endpoint: "/auth/login",
-                    method: "POST",
-                    data: {
-                        email: credentials.email,
-                        password: credentials.password,
-                    },
-                });
+                try {
+                    const data = await authService.login({
+                        email: credentials.email as string,
+                        password: credentials.password as string,
+                    });
 
-                if (!data?.access_token || !data?.user) return null;
+                    console.log("[authorize] API response:", JSON.stringify(data));
 
-                return {
-                    id: data.user.id,
-                    name: data.user.name,
-                    email: data.user.email,
-                    role: data.user.role,
-                    companyId: data.user.company.id,
-                    access_token: data.access_token,
-                };
+                    // Supporte { data: { access_token, user } } et { access_token, user } directement
+                    const payload = (data as any)?.data ?? data as any;
+
+                    if (!payload?.access_token || !payload?.user) {
+                        console.error("[authorize] Unexpected response structure:", data);
+                        return null;
+                    }
+
+                    return {
+                        id: payload.user.id,
+                        name: payload.user.name,
+                        email: payload.user.email,
+                        role: payload.user.role,
+                        access_token: payload.access_token,
+                    };
+                } catch (error: any) {
+                    console.error("[authorize] Login failed:", error?.message ?? error);
+                    return null;
+                }
             },
         }),
     ],
@@ -76,7 +82,6 @@ export const authOptions = {
                 token.access_token = user.access_token
                 token.role = user.role
                 token.id = user.id
-                token.companyId = user.companyId
             }
             return token
         },
@@ -92,7 +97,6 @@ export const authOptions = {
                 session.user.id = token.id as string
                 session.user.role = token.role as string
                 session.user.access_token = token.access_token as string
-                session.user.companyId = token.companyId as string // 🔹 Ajouté
             }
             return session
         },
