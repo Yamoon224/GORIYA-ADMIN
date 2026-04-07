@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Bell, Search, Menu } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Bell, Search, Menu, ChevronDown, LogOut, Settings, User } from "lucide-react"
 import { IUser } from "@/lib/@types/entities"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { authService } from "@/lib/services/auth.service"
 import { useRouter } from "next/navigation"
@@ -16,6 +15,10 @@ import { mockStudents, mockCompanies, mockJobs } from "@/lib/mock-data"
 export function Header() {
     const router = useRouter()
     const [user, setUser] = useState<IUser | null>(null)
+    const [menuOpen, setMenuOpen] = useState(false)
+    const menuRef = useRef<HTMLDivElement>(null)
+    const triggerRef = useRef<HTMLButtonElement>(null)
+    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
     const [searchTerm, setSearchTerm] = useState("")
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [showResults, setShowResults] = useState(false)
@@ -38,6 +41,16 @@ export function Header() {
                 // ignore parse errors
             }
         }
+    }, [])
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setMenuOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
     const userInitials = user?.name
@@ -157,22 +170,47 @@ export function Header() {
                         <Bell className="w-5 h-5" />
                     </Button>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="flex items-center gap-2">
-                                <Avatar className="w-8 h-8">
-                                    <AvatarImage src={user?.avatar ?? "/placeholder.svg"} />
-                                    <AvatarFallback>{userInitials}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-sm hidden lg:block">{user?.name ?? "Goriya Admin"}</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="z-[9999]">
-                            <DropdownMenuItem>Profil</DropdownMenuItem>
-                            <DropdownMenuItem>Paramètres</DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleLogout}>Déconnexion</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div ref={menuRef}>
+                        <button
+                            ref={triggerRef}
+                            onClick={() => {
+                                if (triggerRef.current) {
+                                    const rect = triggerRef.current.getBoundingClientRect()
+                                    setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                                }
+                                setMenuOpen((v) => !v)
+                            }}
+                            className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-gray-100 transition-colors"
+                        >
+                            <Avatar className="w-8 h-8">
+                                <AvatarImage src={user?.avatar ?? "/placeholder.svg"} />
+                                <AvatarFallback>{userInitials}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm hidden lg:block">{user?.name ?? "Goriya Admin"}</span>
+                            <ChevronDown className="w-4 h-4 text-gray-500 hidden lg:block" />
+                        </button>
+
+                        {menuOpen && (
+                            <div
+                                style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
+                                className="w-44 bg-white border border-gray-200 rounded-md shadow-lg py-1"
+                            >
+                                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <User className="w-4 h-4" /> Profil
+                                </button>
+                                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <Settings className="w-4 h-4" /> Paramètres
+                                </button>
+                                <hr className="my-1 border-gray-100" />
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                >
+                                    <LogOut className="w-4 h-4" /> Déconnexion
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
