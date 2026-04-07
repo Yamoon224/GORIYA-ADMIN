@@ -73,7 +73,7 @@ export default function Page() {
     }
 
     return (
-        <div className="p-4 lg:p-6 space-y-2">
+        <div className="p-4 lg:p-4 space-y-2">
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                 <div>

@@ -53,7 +53,10 @@ export default function Page() {
         const fetchAnalytics = async () => {
             try {
                 const data = await analyticsService.getAnalytics()
-                setAnalytics(data.data)
+                const payload = (data as any)?.data ?? data as any
+                if (payload?.analyzedCVs !== undefined) {
+                    setAnalytics(payload)
+                }
             } catch (error) {
                 console.error("Error fetching analytics:", error)
             }
@@ -63,7 +66,7 @@ export default function Page() {
     }, [])
 
     return (
-        <div className="p-2 lg:p-6 space-y-4">
+        <div className="p-2 lg:p-4 space-y-4">
             {/* Header */}
             <div>
                 <h1 className="text-xl lg:text-2xl font-bold">Analytics & Rapports</h1>
