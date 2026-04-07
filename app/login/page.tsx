@@ -81,6 +81,7 @@ export default function Page() {
                                     <Input
                                         type="email"
                                         value={credentials.email}
+                                        placeholder="Votre Adresse Email Administrateur"
                                         onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                                         required
                                         className="h-10"
@@ -93,6 +94,7 @@ export default function Page() {
                                         <Input
                                             type={showPassword ? "text" : "password"}
                                             value={credentials.password}
+                                            placeholder="Votre Mot de Passe"
                                             onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                                             required
                                             className="h-11 pr-10"
