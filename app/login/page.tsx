@@ -6,9 +6,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
 import { authService } from "@/lib/services/auth.service"
-import { Mail, Phone, Globe, Eye, EyeOff } from "lucide-react"
+import { Mail, Phone, Globe } from "lucide-react"
 import { AppLogo } from "@/components/app-logo"
 import { toast } from "sonner"
 
@@ -18,7 +17,6 @@ export default function Page() {
         password: "",
     })
     const [loading, setLoading] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -42,104 +40,93 @@ export default function Page() {
     }
 
     return (
-        <div className="min-h-screen relative">
-            {/* Background Image */}
-            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/bg-auth.webp)" }}>
-                <div className="absolute inset-0 bg-black/20"></div>
-            </div>
+        <div className="relative min-h-screen overflow-hidden">
+            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/images/login-bg.png)" }} />
+            <div className="absolute inset-0 bg-[#1f4ea6]/35" />
 
-            {/* Content */}
-            <div className="relative z-10 min-h-screen flex flex-col md:flex-row">
-                {/* Left side - Bienvenue (hidden on mobile) */}
-                <div className="hidden md:flex flex-1 items-end px-14 pb-40">
-                    <div className="w-full">
-                        <h1 className="text-5xl font-light text-white pb-3">Bienvenue</h1>
-                        <div className="border-b-4 border-white/60 w-full"></div>
-                    </div>
-                </div>
-
-                {/* Right side - Card + Contact */}
-                <div className="w-full md:w-[500px] flex flex-col justify-center px-4 py-8 md:px-10 md:py-10 min-h-screen md:min-h-0">
-                    {/* Mobile: Bienvenue header */}
-                    <div className="md:hidden text-center mb-6">
-                        <h1 className="text-3xl font-light text-white">Bienvenue</h1>
+            <div className="relative z-10 min-h-screen px-4 py-8 md:px-0 md:py-0">
+                <div className="mx-auto flex min-h-screen w-full max-w-[1365px] items-start justify-between">
+                    <div className="hidden md:flex min-h-screen w-full items-end pb-[220px] pl-[110px]">
+                        <div className="w-[780px]">
+                            <h1 className="text-[62px] leading-none font-light text-white">Bienvenue</h1>
+                        </div>
                     </div>
 
-                    {/* Login Card */}
-                    <Card className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl">
-                        <CardContent className="p-6 md:p-10">
-                            <div className="text-center mb-8">
-                                <div className="flex items-center justify-center mb-2">
-                                    <AppLogo />
+                    <div className="relative w-full md:w-auto md:pr-[165px] md:pt-[95px]">
+                        <div className="mx-auto w-full rounded-[28px] bg-white/95 p-7 shadow-2xl backdrop-blur-[1px] md:mx-0 md:w-[495px] md:p-8">
+                            <div className="mb-10 text-center">
+                                <div className="mb-2 flex items-center justify-center">
+                                    <AppLogo width={172} />
                                 </div>
-                                <p className="text-gray-500 text-sm mt-1">Portail Goriya Admin</p>
+                                <p className="text-[30px] text-gray-600 md:text-[32px]">Portail Goriya Admin</p>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-sm text-gray-500">Adresse administrateur</label>
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="block text-[20px] text-[#5c5f66]">Adresse administrateur</label>
                                     <Input
                                         type="email"
                                         value={credentials.email}
-                                        placeholder="Votre Adresse Email Administrateur"
+                                        placeholder=""
                                         onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                                         required
-                                        className="h-10"
+                                        className="h-[50px] rounded-xl border-0 bg-[#eef0f4] px-4 text-[18px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300"
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-sm text-gray-500">Mot de passe</label>
-                                    <div className="relative">
-                                        <Input
-                                            type={showPassword ? "text" : "password"}
-                                            value={credentials.password}
-                                            placeholder="Votre Mot de Passe"
-                                            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                                            required
-                                            className="h-11 pr-10"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                        >
-                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[20px] text-[#5c5f66]">Mot de passe</label>
+                                    <Input
+                                        type="password"
+                                        value={credentials.password}
+                                        placeholder=""
+                                        onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                                        required
+                                        className="h-[50px] rounded-xl border-0 bg-[#eef0f4] px-4 text-[18px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300"
+                                    />
                                 </div>
 
-                                <div className="flex justify-end">
+                                <div className="pt-2">
                                     <Button
                                         type="submit"
-                                        className="w-2/4 rounded-full h-10 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-500 hover:to-blue-800 text-white font-medium mt-2"
+                                        className="h-[51px] w-full rounded-full bg-gradient-to-r from-[#2680ff] to-[#0037bd] text-[23px] font-semibold text-white hover:from-[#2d87ff] hover:to-[#0034ad] md:w-[215px] md:ml-auto"
                                         disabled={loading}
                                     >
                                         {loading ? "Connexion..." : "Connexion"}
                                     </Button>
                                 </div>
                             </form>
-                        </CardContent>
-                    </Card>
+                        </div>
 
-                    {/* Contact Info */}
-                    <div className="mt-2 bg-black/50 backdrop-blur-sm rounded-sm p-4 text-white text-sm">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Mail className="w-4 h-4 shrink-0" />
-                                <span>Courriel: rh@goriya.com</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Phone className="w-4 h-4 shrink-0" />
-                                <span>Téléphone: +33 (0)1 23 45 67 89</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Globe className="w-4 h-4 shrink-0" />
-                                <span>Site internet: www.goriya.com</span>
+                        <div className="mx-auto mt-4 w-full rounded-[0_0_26px_26px] bg-black/45 px-8 py-5 text-white backdrop-blur-sm md:absolute md:left-0 md:top-[372px] md:mt-0 md:w-[495px]">
+                            <div className="space-y-3 text-[31px] leading-tight font-light">
+                                <div className="flex items-start gap-3">
+                                    <Mail className="mt-1 h-7 w-7 shrink-0" />
+                                    <div>
+                                        <p>Courriel:</p>
+                                        <p>joigne@email.com</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <Phone className="mt-1 h-7 w-7 shrink-0" />
+                                    <div>
+                                        <p>Téléphone</p>
+                                        <p>Téléphone: +44 1245 572 135</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <Globe className="mt-1 h-7 w-7 shrink-0" />
+                                    <div>
+                                        <p>Site internet</p>
+                                        <p>www.jakegyll.com</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <div className="pointer-events-none absolute left-0 right-0 top-[468px] hidden border-t-4 border-white/60 md:block" />
             </div>
         </div>
     )

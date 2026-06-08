@@ -1,61 +1,81 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { StatsCard } from "@/components/dashboard/stats-card"
 import { analyticsService } from "@/lib/services/analytics.service"
-import { BarChart3, TrendingUp, Clock, Target } from "lucide-react"
+import { BarChart3, Users, Target, Clock3, TrendingUp, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Area, AreaChart, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts"
+import {
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    XAxis,
+    YAxis,
+    Tooltip,
+} from "recharts"
 
 const evolutionData = [
-    { month: "Fév", value: 800 },
-    { month: "Mar", value: 1200 },
-    { month: "Avr", value: 1600 },
-    { month: "Mai", value: 2000 },
-    { month: "Juin", value: 2400 },
+    { month: "Jan", value: 1120 },
+    { month: "Fev", value: 1560 },
+    { month: "Mar", value: 1860 },
+    { month: "Avr", value: 2090 },
+    { month: "Mai", value: 2430 },
+    { month: "Juin", value: 2680 },
 ]
 
 const activityData = [
-    { name: "CV Analysés", value: 45, color: "#3B82F6" },
-    { name: "Entretiens", value: 30, color: "#10B981" },
-    { name: "Matchings", value: 25, color: "#F59E0B" },
+    { name: "CV analyses", value: 36, color: "#f59e0b" },
+    { name: "Entretiens", value: 40, color: "#2f80ed" },
+    { name: "Matchings", value: 24, color: "#34a853" },
 ]
 
 const monthlyActivity = [
-    { month: "Jan", value: 180 },
-    { month: "Fév", value: 220 },
-    { month: "Mar", value: 200 },
-    { month: "Avr", value: 280 },
-    { month: "Mai", value: 320 },
-    { month: "Juin", value: 350 },
-    { month: "Juil", value: 380 },
+    { month: "Jan", cv: 11000, entretiens: 4000 },
+    { month: "Fev", cv: 15000, entretiens: 5000 },
+    { month: "Mar", cv: 18000, entretiens: 6000 },
+    { month: "Avr", cv: 0, entretiens: 8200 },
+    { month: "Mai", cv: 0, entretiens: 9000 },
+    { month: "Juin", cv: 0, entretiens: 9600 },
 ]
 
 const userDistribution = [
-    { name: "Étudiants actifs", value: 60, color: "#3B82F6" },
-    { name: "Entreprises", value: 25, color: "#10B981" },
-    { name: "Partenaires RH", value: 15, color: "#8B5CF6" },
+    { name: "Etudiants", value: 65, color: "#3f7fe8" },
+    { name: "Professionnels", value: 25, color: "#27ae60" },
+    { name: "Diplomes", value: 10, color: "#7b61ff" },
 ]
 
 export default function Page() {
-    type AnalyticsData = { analyzedCVs: number; successfulInterviews: number; matchingRate: number; averageAnalysisTime: string; evolutionData: Array<{ month: string; value: number }>; activityDistribution: Array<{ name: string; value: number; color: string }> }
+    type AnalyticsData = {
+        analyzedCVs: number
+        successfulInterviews: number
+        matchingRate: number
+        averageAnalysisTime: string
+    }
+
     const [analytics, setAnalytics] = useState<AnalyticsData>({
         analyzedCVs: 14250,
-        successfulInterviews: 5640,
+        successfulInterviews: 5840,
         matchingRate: 78.6,
         averageAnalysisTime: "2.4min",
-        evolutionData: [],
-        activityDistribution: [],
     })
 
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
                 const data = await analyticsService.getAnalytics()
-                const payload = (data as any)?.data ?? data as any
+                const payload = (data as any)?.data ?? (data as any)
                 if (payload?.analyzedCVs !== undefined) {
-                    setAnalytics(payload)
+                    setAnalytics({
+                        analyzedCVs: payload.analyzedCVs,
+                        successfulInterviews: payload.successfulInterviews,
+                        matchingRate: payload.matchingRate,
+                        averageAnalysisTime: payload.averageAnalysisTime,
+                    })
                 }
             } catch (error) {
                 console.error("Error fetching analytics:", error)
@@ -66,180 +86,176 @@ export default function Page() {
     }, [])
 
     return (
-        <div className="p-2 lg:p-4 space-y-4">
-            {/* Header */}
+        <div className="space-y-4">
             <div>
-                <h1 className="text-xl lg:text-2xl font-bold">Analytics & Rapports</h1>
-                <p className="text-gray-600 text-sm lg:text-base">
-                    Analysez et décortiquez les performances de la plateforme Goriya
-                </p>
+                <h1 className="text-[40px] font-semibold leading-tight text-[#242a38]">Analytics & Rapports</h1>
+                <p className="mt-1 text-[14px] text-[#7f8797]">Analyse detaillee des performances de la plateforme Goriya</p>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard
-                    title="CV Analysés Total"
-                    value={analytics.analyzedCVs.toLocaleString()}
-                    subtitle="Total des CV analysés"
-                    icon={BarChart3}
-                    color="bg-blue-500"
-                />
-                <StatsCard
-                    title="Entretiens Réussis"
-                    value={analytics.successfulInterviews.toLocaleString()}
-                    subtitle="Entretiens menés avec succès"
-                    icon={Target}
-                    color="bg-green-500"
-                />
-                <StatsCard
-                    title="Taux de Matching"
-                    value={`${analytics.matchingRate}%`}
-                    subtitle="Taux de matching global"
-                    icon={TrendingUp}
-                    color="bg-purple-500"
-                />
-                <StatsCard
-                    title="Temps Moyen Analyse"
-                    value={analytics.averageAnalysisTime}
-                    subtitle="Temps moyen d'analyse CV"
-                    icon={Clock}
-                    color="bg-orange-500"
-                />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <KpiCard title="CV Analyses Total" value={analytics.analyzedCVs.toLocaleString()} icon={BarChart3} />
+                <KpiCard title="Entretiens Simules" value={analytics.successfulInterviews.toLocaleString()} icon={Users} />
+                <KpiCard title="Taux de Matching" value={`${analytics.matchingRate}%`} icon={Target} />
+                <KpiCard title="Temps Moyen Analyse" value={analytics.averageAnalysisTime} icon={Clock3} />
             </div>
 
-            {/* Charts */}
-            <div className="space-y-4">
-                {/* First row of charts */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    {/* Evolution Chart */}
-                    <Card className="min-w-0 w-full">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
-                                <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5" />
-                                Évolution des Analyses
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="overflow-hidden">
-                            <ChartContainer 
-                                config={{
-                                    value: { label: "Analyses", color: "hsl(var(--chart-1))" },
-                                }}
-                                className="w-full h-[250px] lg:h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                                            </linearGradient>
-                                        </defs>
-                                        <XAxis dataKey="month" fontSize={12} />
-                                        <YAxis fontSize={12} />
-                                        <ChartTooltip content={<ChartTooltipContent />} />
-                                        <Area type="monotone" dataKey="value" stroke="#3B82F6" fill="url(#colorValue)" fillOpacity={1} />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-2 shadow-none">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-[33px] font-semibold text-[#242a38]">
+                            <TrendingUp className="h-4 w-4 text-[#1f2533]" />
+                            Evolution des Analyses
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-5">
+                        <div className="h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={evolutionData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="evolutionGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#1f53cc" stopOpacity={0.9} />
+                                            <stop offset="100%" stopColor="#1f53cc" stopOpacity={0.16} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid stroke="#e8ebf2" strokeDasharray="3 3" />
+                                    <XAxis dataKey="month" tick={{ fill: "#72809a", fontSize: 12 }} axisLine={false} tickLine={false} />
+                                    <YAxis
+                                        tick={{ fill: "#72809a", fontSize: 12 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        ticks={[0, 700, 1400, 2100, 2800]}
+                                        domain={[0, 2800]}
+                                    />
+                                    <Tooltip />
+                                    <Area type="monotone" dataKey="value" stroke="#1241bd" strokeWidth={2} fill="url(#evolutionGradient)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    {/* Activity Distribution */}
-                    <Card className="min-w-0 w-full">
-                        <CardHeader>
-                            <CardTitle className="text-base lg:text-lg">Répartition des Activités</CardTitle>
-                        </CardHeader>
-                        <CardContent className="overflow-hidden">
-                            <ChartContainer 
-                                config={{
-                                    value: {
-                                      label: "Analyses",   // ou "Activité", "Utilisateurs", selon le chart
-                                      color: "hsl(var(--chart-1))", // couleur correspondant au chart
-                                    },
-                                }}
-                                className="w-full h-[250px] lg:h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={activityData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} paddingAngle={5} dataKey="value">
-                                            {activityData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-                                        </Pie>
-                                        <ChartTooltip content={<ChartTooltipContent />} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                            <div className="flex flex-wrap justify-center gap-2 mt-4">
-                                {activityData.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-2 text-xs lg:text-sm">
-                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                                        <span>{item.name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-2 shadow-none">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-[33px] font-semibold text-[#242a38]">
+                            <Eye className="h-4 w-4 text-[#1f2533]" />
+                            Repartition des Activites
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-5">
+                        <div className="h-[260px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={activityData}
+                                        cx="50%"
+                                        cy="52%"
+                                        innerRadius={52}
+                                        outerRadius={88}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {activityData.map((entry) => (
+                                            <Cell key={entry.name} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-[#1f2533]">
+                            <LegendDot color="#111111" label="CV analyses" />
+                            <LegendDot color="#2f80ed" label="Entretiens" />
+                            <LegendDot color="#34a853" label="Matchings" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-2 shadow-none">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-[33px] font-semibold text-[#242a38]">Activite Mensuelle</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-5">
+                        <div className="h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={monthlyActivity} margin={{ top: 10, right: 10, left: 2, bottom: 0 }}>
+                                    <CartesianGrid stroke="#eceff5" strokeDasharray="3 3" />
+                                    <XAxis dataKey="month" tick={{ fill: "#72809a", fontSize: 11 }} axisLine={false} tickLine={false} />
+                                    <YAxis
+                                        tick={{ fill: "#72809a", fontSize: 10 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        ticks={[0, 15000, 30000, 45000, 60000]}
+                                        domain={[0, 60000]}
+                                    />
+                                    <Tooltip />
+                                    <Bar dataKey="cv" fill="#23b27e" maxBarSize={26} radius={[0, 0, 0, 0]} />
+                                    <Bar dataKey="entretiens" fill="#f39c12" maxBarSize={26} radius={[0, 0, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-2 shadow-none">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-[33px] font-semibold text-[#242a38]">Repartition des Utilisateurs</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-5">
+                        <div className="relative h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={userDistribution} cx="50%" cy="55%" outerRadius={68} dataKey="value" stroke="none">
+                                        {userDistribution.map((entry) => (
+                                            <Cell key={entry.name} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <p className="absolute left-[20%] top-[12%] text-[11px] text-[#3f7fe8]">Etudiants: 65%</p>
+                            <p className="absolute left-[56%] top-[43%] text-[11px] text-[#7b61ff]">Diplomes 10%</p>
+                            <p className="absolute left-[44%] top-[62%] text-[11px] text-[#27ae60]">Professionnels: 25%</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    )
+}
+
+type KpiCardProps = {
+    title: string
+    value: string
+    icon: React.ComponentType<{ className?: string }>
+}
+
+function KpiCard({ title, value, icon: Icon }: KpiCardProps) {
+    return (
+        <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+            <CardContent className="flex items-start justify-between px-4 py-4">
+                <div>
+                    <p className="text-[11px] text-[#8b92a3]">{title}</p>
+                    <p className="mt-3 text-[35px] leading-none font-semibold text-[#232a38]">{value}</p>
                 </div>
-
-                {/* Second row of charts */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    {/* Monthly Activity */}
-                    <Card className="min-w-0 w-full">
-                        <CardHeader>
-                            <CardTitle className="text-base lg:text-lg">Activité Mensuelle</CardTitle>
-                        </CardHeader>
-                        <CardContent className="overflow-hidden">
-                            <ChartContainer 
-                                config={{
-                                    value: {
-                                      label: "Analyses",   // ou "Activité", "Utilisateurs", selon le chart
-                                      color: "hsl(var(--chart-1))", // couleur correspondant au chart
-                                    },
-                                }}
-                                className="w-full h-[250px] lg:h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={monthlyActivity} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                        <XAxis dataKey="month" fontSize={12} />
-                                        <YAxis fontSize={12} />
-                                        <ChartTooltip content={<ChartTooltipContent />} />
-                                        <Bar dataKey="value" fill="#10B981" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card>
-
-                    {/* User Distribution */}
-                    <Card className="min-w-0 w-full">
-                        <CardHeader>
-                            <CardTitle className="text-base lg:text-lg">Répartition des Utilisateurs</CardTitle>
-                        </CardHeader>
-                        <CardContent className="overflow-hidden">
-                            <ChartContainer 
-                                config={{
-                                    value: {
-                                    label: "Analyses",   // ou "Activité", "Utilisateurs", selon le chart
-                                    color: "hsl(var(--chart-1))", // couleur correspondant au chart
-                                    },
-                                }}
-                                className="w-full h-[250px] lg:h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={userDistribution} cx="50%" cy="50%" outerRadius={80} dataKey="value">
-                                            {userDistribution.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-                                        </Pie>
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                            <div className="flex flex-wrap justify-center gap-2 mt-4 text-xs lg:text-sm">
-                                {userDistribution.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                                        <span>{item.name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a89ef]">
+                    <Icon className="h-4 w-4 text-white" />
                 </div>
-            </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+type LegendDotProps = {
+    color: string
+    label: string
+}
+
+function LegendDot({ color, label }: LegendDotProps) {
+    return (
+        <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5" style={{ backgroundColor: color }} />
+            <span>{label}</span>
         </div>
     )
 }

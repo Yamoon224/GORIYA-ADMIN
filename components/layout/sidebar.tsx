@@ -11,18 +11,15 @@ export function Sidebar({ className }: SidebarProps) {
     const pathname = usePathname()
 
     return (
-        <aside className={cn("w-64 bg-slate-800 text-white flex flex-col min-h-0", className)}>
-            {/* Header/logo fixe */}
-            <div className="flex-shrink-0 p-4 flex items-center justify-center">
-                <AppLogo />
+        <aside className={cn("w-64 bg-[#4a4854] text-white flex flex-col min-h-0", className)}>
+            <div className="flex-shrink-0 h-12 bg-[#f4f4f7] flex items-center justify-center border-b border-[#d6d6de]">
+                <AppLogo width={96} />
             </div>
 
-            {/* Menu scrollable */}
-            <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-6
-  scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 scrollbar-thumb-rounded hover:scrollbar-thumb-gray-500">
+            <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-overlay">
                 {menuGroups.map((group, groupIndex) => (
                     <div key={groupIndex}>
-                        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                        <h3 className="mb-2 text-[10px] font-medium text-[#8d8a98]">
                             {group.title}
                         </h3>
                         <div className="space-y-1">
@@ -35,13 +32,13 @@ export function Sidebar({ className }: SidebarProps) {
                                         key={item.href}
                                         href={item.href}
                                         className={cn(
-                                            "flex items-center gap-3 px-3 py-2 rounded-sm text-sm transition-colors",
+                                            "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[12px] transition-colors",
                                             isActive
-                                                ? "bg-blue-600 text-white"
-                                                : "text-slate-300 hover:bg-slate-700 hover:text-white"
+                                                ? "bg-[#1166ff] text-white"
+                                                : "text-[#ebecf0] hover:bg-[#5a5865] hover:text-white"
                                         )}
                                     >
-                                        <Icon className="w-4 h-4" />
+                                        <Icon className="w-3.5 h-3.5" />
                                         {item.title}
                                     </Link>
                                 )

@@ -4,7 +4,6 @@ import {
     Building2,
     BarChart3,
     FileText,
-    Settings,
     UserCheck,
     Briefcase,
     FileSearch,
@@ -12,6 +11,10 @@ import {
     Brain,
     Target,
     FolderOpen,
+    FileBarChart,
+    Shield,
+    SlidersHorizontal,
+    CircleDollarSign,
 } from "lucide-react"
 
 export const menuGroups = [
@@ -28,10 +31,15 @@ export const menuGroups = [
                 href: "/analytics",
                 icon: BarChart3,
             },
+            {
+                title: "Comptabilité",
+                href: "/comptabilite",
+                icon: CircleDollarSign,
+            },
         ],
     },
     {
-        title: "Gestion",
+        title: "Gestion Utilisateurs",
         items: [
             {
                 title: "Étudiants/Candidats",
@@ -51,17 +59,17 @@ export const menuGroups = [
         ],
     },
     {
-        title: "IA & Analyse",
+        title: "Outils IA",
         items: [
             {
-                title: "Analyse IA des CV",
+                title: "Analyse IA CV",
                 href: "/analyze-ai",
                 icon: Brain,
             },
             {
-                title: "Matching IA Avancé",
-                href: "/matching-ai",
-                icon: Target,
+                title: "Simulation Entretiens",
+                href: "/simulation-entretiens",
+                icon: FileBarChart,
             },
             {
                 title: "Scoring IA",
@@ -71,7 +79,7 @@ export const menuGroups = [
         ],
     },
     {
-        title: "Emploi & Candidatures",
+        title: "Emploi & Recrutement",
         items: [
             {
                 title: "Offres d'Emploi",
@@ -83,20 +91,25 @@ export const menuGroups = [
                 href: "/candidatures",
                 icon: FileText,
             },
-        ],
-    },
-    {
-        title: "Outils",
-        items: [
+            {
+                title: "Matching IA",
+                href: "/matching-ai",
+                icon: Target,
+            },
             {
                 title: "Recherche Avancée",
                 href: "/recherche-avancee",
                 icon: FileSearch,
             },
+        ],
+    },
+    {
+        title: "Formation & Portfolio",
+        items: [
             {
-                title: "Planification",
-                href: "/planification",
-                icon: Calendar,
+                title: "Formations",
+                href: "/simulation-entretiens",
+                icon: FileBarChart,
             },
             {
                 title: "Portfolios",
@@ -106,12 +119,22 @@ export const menuGroups = [
         ],
     },
     {
-        title: "Configuration",
+        title: "Système",
         items: [
+            {
+                title: "Planification",
+                href: "/planification",
+                icon: Calendar,
+            },
+            {
+                title: "Sécurité",
+                href: "/parametres",
+                icon: Shield,
+            },
             {
                 title: "Paramètres",
                 href: "/parametres",
-                icon: Settings,
+                icon: SlidersHorizontal,
             },
         ],
     },

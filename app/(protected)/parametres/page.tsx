@@ -1,229 +1,125 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { settingsService, type ISystemSettings } from "@/lib/services/settings.service"
-import { Settings, User, Bell, Shield, Users, Database, Globe, Save } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Bell, Database, Mail, Palette, Settings, Shield, User, Save } from "lucide-react"
+
+const tabs = [
+    { key: "general", label: "Général", icon: Settings, active: true },
+    { key: "profile", label: "Profil", icon: User, active: false },
+    { key: "notifications", label: "Notifications", icon: Bell, active: false },
+    { key: "appearance", label: "Apparence", icon: Palette, active: false },
+    { key: "emails", label: "Emails", icon: Mail, active: false },
+    { key: "database", label: "Base de Données", icon: Database, active: false },
+    { key: "security", label: "Sécurité", icon: Shield, active: false },
+]
 
 export default function Page() {
-    const [settings, setSettings] = useState<ISystemSettings>({
-        platformName: "Goriya",
-        mainUrl: "https://goriya.com",
-        supportEmail: "support@goriya.com",
-        timezone: "Europe/Paris",
-        description:
-            "Plateforme d'emploi intelligente utilisant l'IA pour optimiser le matching candidats-entreprises et améliorer de CV.",
-    })
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const data = await settingsService.getSettings()
-                setSettings(data)
-            } catch (error) {
-                console.error("Erreur lors du chargement des paramètres:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchSettings()
-    }, [])
-
-    const handleSave = async () => {
-        setSaving(true)
-        try {
-            await settingsService.updateSettings(settings)
-            // Show success message
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde:", error)
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    const handleInputChange = (field: keyof SystemSettings, value: string) => {
-        setSettings((prev) => ({ ...prev, [field]: value }))
-    }
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64">Chargement...</div>
-    }
+    const [platformName, setPlatformName] = useState("Goriya")
+    const [mainUrl, setMainUrl] = useState("https://goriya.com")
+    const [supportEmail, setSupportEmail] = useState("support@goriya.com")
+    const [timezone, setTimezone] = useState("Europe/Paris")
+    const [description, setDescription] = useState(
+        "Plateforme d'emploi intelligente utilisant l'IA pour optimiser le matching candidats-entreprises et l'analyse de CV.",
+    )
 
     return (
-        <div className="p-2 space-y-2">
-            {/* Header */}
+        <div className="space-y-4">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Paramètres Système</h1>
-                <p className="text-gray-600">Configuration générale de la plateforme Goriya</p>
+                <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Paramètres Système</h1>
+                <p className="mt-1 text-[14px] text-[#7f8797]">Configuration générale de la plateforme Goriya</p>
             </div>
 
-            <Tabs defaultValue="general" className="space-y-2">
-                <TabsList className="grid w-full grid-cols-7">
-                    <TabsTrigger value="general" className="flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        Général
-                    </TabsTrigger>
-                    <TabsTrigger value="profile" className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Profil
-                    </TabsTrigger>
-                    <TabsTrigger value="notifications" className="flex items-center gap-2">
-                        <Bell className="w-4 h-4" />
-                        Notifications
-                    </TabsTrigger>
-                    <TabsTrigger value="preferences" className="flex items-center gap-2">
-                        <Globe className="w-4 h-4" />
-                        Préférences
-                    </TabsTrigger>
-                    <TabsTrigger value="team" className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Équipe
-                    </TabsTrigger>
-                    <TabsTrigger value="database" className="flex items-center gap-2">
-                        <Database className="w-4 h-4" />
-                        Base de données
-                    </TabsTrigger>
-                    <TabsTrigger value="security" className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        Sécurité
-                    </TabsTrigger>
-                </TabsList>
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-3 py-2">
+                    <div className="grid grid-cols-2 gap-1 md:grid-cols-4 xl:grid-cols-7">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                className={`flex h-9 items-center justify-center gap-2 rounded-lg px-2 text-[12px] ${
+                                    tab.active
+                                        ? "bg-[#f4f6fb] text-[#2f3647]"
+                                        : "text-[#7f8797] hover:bg-[#f8f9fc]"
+                                }`}
+                            >
+                                <tab.icon className="h-3.5 w-3.5" />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
 
-                <TabsContent value="general" className="space-y-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Configuration Générale</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="platformName">Nom de la plateforme</Label>
-                                    <Input
-                                        id="platformName"
-                                        value={settings.platformName}
-                                        onChange={(e) => handleInputChange("platformName", e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="mainUrl">URL principale</Label>
-                                    <Input
-                                        id="mainUrl"
-                                        value={settings.mainUrl}
-                                        onChange={(e) => handleInputChange("mainUrl", e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="supportEmail">Email support</Label>
-                                    <Input
-                                        id="supportEmail"
-                                        type="email"
-                                        value={settings.supportEmail}
-                                        onChange={(e) => handleInputChange("supportEmail", e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="timezone">Fuseau horaire</Label>
-                                    <Input
-                                        id="timezone"
-                                        value={settings.timezone}
-                                        onChange={(e) => handleInputChange("timezone", e.target.value)}
-                                    />
-                                </div>
-                            </div>
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <h2 className="mb-4 text-[31px] font-semibold text-[#242a38]">Configuration Générale</h2>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Description de la plateforme</Label>
-                                <Textarea
-                                    id="description"
-                                    rows={4}
-                                    value={settings.description}
-                                    onChange={(e) => handleInputChange("description", e.target.value)}
-                                    placeholder="Plateforme d'emploi intelligente utilisant l'IA pour optimiser le matching candidats-entreprises et améliorer de CV."
-                                />
-                            </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                            <label className="mb-2 block text-[12px] text-[#4a5162]">Nom de la plateforme</label>
+                            <Input
+                                value={platformName}
+                                onChange={(event) => setPlatformName(event.target.value)}
+                                className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
+                            />
+                        </div>
 
-                            <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
-                                <Save className="w-4 h-4 mr-2" />
-                                {saving ? "Enregistrement..." : "Enregistrer les Modifications"}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                        <div>
+                            <label className="mb-2 block text-[12px] text-[#4a5162]">URL principale</label>
+                            <Input
+                                value={mainUrl}
+                                onChange={(event) => setMainUrl(event.target.value)}
+                                className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
+                            />
+                        </div>
 
-                <TabsContent value="profile" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Profil Administrateur</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">Configuration du profil administrateur en cours de développement...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                        <div>
+                            <label className="mb-2 block text-[12px] text-[#4a5162]">Email support</label>
+                            <Input
+                                value={supportEmail}
+                                onChange={(event) => setSupportEmail(event.target.value)}
+                                className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
+                            />
+                        </div>
 
-                <TabsContent value="notifications" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Paramètres de Notifications</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">Configuration des notifications en cours de développement...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                        <div>
+                            <label className="mb-2 block text-[12px] text-[#4a5162]">Fuseau horaire</label>
+                            <Select value={timezone} onValueChange={setTimezone}>
+                                <SelectTrigger className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none">
+                                    <SelectValue placeholder="Choisir un fuseau" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Europe/Paris">Europe/Paris</SelectItem>
+                                    <SelectItem value="Africa/Abidjan">Africa/Abidjan</SelectItem>
+                                    <SelectItem value="Europe/London">Europe/London</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
 
-                <TabsContent value="preferences" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Préférences Système</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">Configuration des préférences en cours de développement...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                    <div className="mt-4">
+                        <label className="mb-2 block text-[12px] text-[#4a5162]">Description de la plateforme</label>
+                        <Textarea
+                            value={description}
+                            onChange={(event) => setDescription(event.target.value)}
+                            className="min-h-28 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
+                        />
+                    </div>
 
-                <TabsContent value="team" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Gestion d'Équipe</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">Gestion d'équipe en cours de développement...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                    <Button className="mt-4 h-9 rounded-full bg-[#0f56d9] px-5 text-[12px] font-semibold text-white hover:bg-[#0a4cc5]">
+                        <Save className="h-3.5 w-3.5" />
+                        Enregistrer les Modifications
+                    </Button>
+                </CardContent>
+            </Card>
 
-                <TabsContent value="database" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Configuration Base de Données</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">Configuration de la base de données en cours de développement...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="security" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Paramètres de Sécurité</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600">Configuration de sécurité en cours de développement...</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+            <Badge className="hidden">placeholder</Badge>
         </div>
     )
 }

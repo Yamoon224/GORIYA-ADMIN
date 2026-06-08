@@ -1,367 +1,339 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useMemo, useState } from "react"
+import {
+    Eye,
+    Image,
+    Plus,
+    Search,
+    Filter,
+    Star,
+    ExternalLink,
+    Trophy,
+    FolderOpen,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { portfolioService } from "@/lib/services/portfolio.service"
-import type { IPortfolio } from "@/lib/@types/entities"
-import { FileText, Eye, Download, Heart, Search, Filter, Grid, List, ExternalLink, Mail } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+
+const topTags = [
+    "Développement (156)",
+    "Design (89)",
+    "Data Science (67)",
+    "Marketing (45)",
+]
+
+const categories = [
+    { name: "Développement", count: 156, delta: "+23%" },
+    { name: "Design", count: 89, delta: "+18%" },
+    { name: "Data Science", count: 67, delta: "+31%" },
+    { name: "Marketing", count: 45, delta: "+12%" },
+]
+
+type PortfolioCard = {
+    id: string
+    initials: string
+    name: string
+    role: string
+    title: string
+    description: string
+    tags: string[]
+    views: number
+    stars: string
+    update: string
+    featured?: boolean
+}
+
+const featuredPortfolios: PortfolioCard[] = [
+    {
+        id: "f1",
+        initials: "SM",
+        name: "Sophie Martin",
+        role: "Développeuse Web",
+        title: "Portfolio Développeuse Full-Stack",
+        description: "Portfolio moderne présentant des applications web complètes",
+        tags: ["8 projets"],
+        views: 1247,
+        stars: "4.9",
+        update: "",
+        featured: true,
+    },
+    {
+        id: "f2",
+        initials: "AL",
+        name: "Alice Laurent",
+        role: "Design",
+        title: "Design UX/UI & Branding",
+        description: "Créations visuelles et expériences utilisateur immersives",
+        tags: ["15 projets"],
+        views: 1563,
+        stars: "4.8",
+        update: "",
+        featured: true,
+    },
+]
+
+const allPortfolios: PortfolioCard[] = [
+    {
+        id: "1",
+        initials: "SM",
+        name: "Sophie Martin",
+        role: "Développeuse Web",
+        title: "Portfolio Développeuse Full-Stack",
+        description: "Portfolio moderne présentant des applications web complètes",
+        tags: ["React", "Node.js", "MongoDB", "+1"],
+        views: 1247,
+        stars: "4.9",
+        update: "Mis à jour il y a 2 jours",
+        featured: true,
+    },
+    {
+        id: "2",
+        initials: "MD",
+        name: "Marc Dubois",
+        role: "Data Science",
+        title: "Projet Data Science & IA",
+        description: "Analyses prédictives et modèles d'apprentissage automatique",
+        tags: ["Python", "TensorFlow", "Tableau", "+1"],
+        views: 882,
+        stars: "4.7",
+        update: "Mis à jour il y a 1 semaine",
+    },
+    {
+        id: "3",
+        initials: "AL",
+        name: "Alice Laurent",
+        role: "Design",
+        title: "Design UX/UI & Branding",
+        description: "Créations visuelles et expériences utilisateur innovantes",
+        tags: ["Figma", "Adobe XD", "Illustrator", "+1"],
+        views: 1563,
+        stars: "4.8",
+        update: "Mis à jour il y a 3 jours",
+        featured: true,
+    },
+    {
+        id: "4",
+        initials: "PM",
+        name: "Paul Moreau",
+        role: "Marketing",
+        title: "Marketing Digital & Analytics",
+        description: "Campagnes marketing et analyses de performance",
+        tags: ["Google Analytics", "Facebook Ads", "SEO", "+1"],
+        views: 964,
+        stars: "4.5",
+        update: "Mis à jour il y a 5 jours",
+    },
+]
 
 export default function Page() {
-    const [stats, setStats] = useState({
-        totalPortfolios: 567,
-        totalViews: 47943,
-        totalDownloads: 4176,
-        totalLikes: 1347,
-    })
-    const [portfolios, setPortfolios] = useState<IPortfolio[]>([])
-    const [featuredPortfolios, setFeaturedPortfolios] = useState<IPortfolio[]>([])
-    const [popularCategories, setPopularCategories] = useState([
-        { name: "Développement", count: 156, color: "#3B82F6" },
-        { name: "Design", count: 89, color: "#10B981" },
-        { name: "Marketing", count: 67, color: "#F59E0B" },
-        { name: "Data Science", count: 45, color: "#EF4444" },
-    ])
-    const [loading, setLoading] = useState(true)
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+    const [query, setQuery] = useState("")
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsData, portfoliosData, featuredData, categoriesData] = await Promise.all([
-                    portfolioService.getStats(),
-                    portfolioService.getPortfolios({ page: 1, limit: 12 }),
-                    portfolioService.getFeaturedPortfolios(),
-                    portfolioService.getPopularCategories(),
-                ])
-
-                setStats(statsData)
-                setPortfolios(
-                    portfoliosData.portfolios || [
-                        {
-                            id: "1",
-                            candidateName: "Lucas Rousseau",
-                            candidateEmail: "lucas.rousseau@email.com",
-                            title: "Développeur Full-Stack",
-                            description: "Passionné par le développement web moderne avec React et Node.js",
-                            skills: ["React", "Node.js", "TypeScript", "MongoDB"],
-                            projects: [
-                                {
-                                    name: "E-commerce Platform",
-                                    description: "Plateforme e-commerce complète avec React et Node.js",
-                                    technologies: ["React", "Node.js", "MongoDB"],
-                                },
-                            ],
-                            views: 1247,
-                            downloads: 89,
-                            likes: 156,
-                            createdDate: "2024-01-10",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                        },
-                        {
-                            id: "2",
-                            candidateName: "Emma Martin",
-                            candidateEmail: "emma.martin@email.com",
-                            title: "UX/UI Designer",
-                            description: "Designer créative spécialisée dans l'expérience utilisateur",
-                            skills: ["Figma", "Adobe XD", "Sketch", "Prototyping"],
-                            projects: [
-                                {
-                                    name: "Mobile Banking App",
-                                    description: "Design d'une application bancaire mobile",
-                                    technologies: ["Figma", "Prototyping"],
-                                },
-                            ],
-                            views: 892,
-                            downloads: 67,
-                            likes: 134,
-                            createdDate: "2024-01-08",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                        },
-                        {
-                            id: "3",
-                            candidateName: "Alex Moreau",
-                            candidateEmail: "alex.moreau@email.com",
-                            title: "Data Scientist",
-                            description: "Expert en analyse de données et machine learning",
-                            skills: ["Python", "TensorFlow", "Pandas", "SQL"],
-                            projects: [
-                                {
-                                    name: "Predictive Analytics Dashboard",
-                                    description: "Dashboard d'analyse prédictive pour le retail",
-                                    technologies: ["Python", "TensorFlow", "React"],
-                                },
-                            ],
-                            views: 756,
-                            downloads: 45,
-                            likes: 98,
-                            createdDate: "2024-01-05",
-                            avatar: "/placeholder.svg?height=40&width=40",
-                        },
-                    ],
-                )
-                setFeaturedPortfolios(featuredData || portfolios.slice(0, 3))
-                setPopularCategories(categoriesData || popularCategories)
-            } catch (error) {
-                console.error("Erreur lors du chargement des données:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [])
-
-    const handleLike = async (portfolioId: string) => {
-        try {
-            await portfolioService.featurePortfolio(portfolioId, true)
-            // Update local state
-            setPortfolios((prev) => prev.map((p) => (p.id === portfolioId ? { ...p, likes: p.likes + 1 } : p)))
-        } catch (error) {
-            console.error("Erreur lors du like:", error)
-        }
-    }
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64">Chargement...</div>
-    }
+    const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase()
+        if (!q) return allPortfolios
+        return allPortfolios.filter((item) =>
+            [item.name, item.role, item.title, item.description, ...item.tags].join(" ").toLowerCase().includes(q),
+        )
+    }, [query])
 
     return (
-        <div className="p-6 space-y-2">
-            {/* Header */}
-            <div className="flex justify-between items-center">
+        <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Portfolio Candidats</h1>
-                    <p className="text-gray-600">Découvrez les portfolios et projets des candidats</p>
+                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Portfolios Candidats</h1>
+                    <p className="mt-1 text-[14px] text-[#7f8797]">
+                        Vitrine des créations et projets des talents de la plateforme
+                    </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant={viewMode === "grid" ? "default" : "outline"} size="sm" onClick={() => setViewMode("grid")}>
-                        <Grid className="w-4 h-4" />
-                    </Button>
-                    <Button variant={viewMode === "list" ? "default" : "outline"} size="sm" onClick={() => setViewMode("list")}>
-                        <List className="w-4 h-4" />
-                    </Button>
-                </div>
+
+                <Button className="mt-1 h-9 rounded-full bg-[#0f56d9] px-5 text-[12px] font-semibold text-white hover:bg-[#0a4cc5]">
+                    <Plus className="h-3.5 w-3.5" />
+                    Créer Portfolio
+                </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Portfolios</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.totalPortfolios}</p>
-                                <p className="text-xs text-gray-500">Total disponibles</p>
-                            </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-sm flex items-center justify-center">
-                                <FileText className="w-6 h-6 text-blue-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Vues Totales</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
-                                <p className="text-xs text-gray-500">Ce mois</p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-sm flex items-center justify-center">
-                                <Eye className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Téléchargements</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.totalDownloads.toLocaleString()}</p>
-                                <p className="text-xs text-gray-500">Ce mois</p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-sm flex items-center justify-center">
-                                <Download className="w-6 h-6 text-purple-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Appréciations</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.totalLikes.toLocaleString()}</p>
-                                <p className="text-xs text-gray-500">Total</p>
-                            </div>
-                            <div className="w-12 h-12 bg-red-100 rounded-sm flex items-center justify-center">
-                                <Heart className="w-6 h-6 text-red-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <Kpi title="Portfolios Actifs" value="357" icon={FolderOpen} />
+                <Kpi title="Vues Totales" value="47,293" icon={Eye} />
+                <Kpi title="Note Moyenne" value="4.7/5" icon={Star} />
+                <Kpi title="Projets Présentés" value="1,247" icon={Image} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Sidebar */}
-                <div className="space-y-2">
-                    {/* Popular Categories */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Catégories Populaires</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-1">
-                                {popularCategories.map((category) => (
-                                    <div key={category.name} className="flex items-center justify-between">
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f96a7]" />
+                            <Input
+                                value={query}
+                                onChange={(event) => setQuery(event.target.value)}
+                                placeholder="Rechercher portfolio par nom, domaine, technologies..."
+                                className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] pl-9 text-[12px] text-[#313847] shadow-none"
+                            />
+                        </div>
+                        <Button variant="outline" className="h-10 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-4 text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]">
+                            <Filter className="h-3.5 w-3.5" />
+                            Filtres
+                        </Button>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {topTags.map((tag) => (
+                            <Badge key={tag} className="rounded-full border border-[#e7ebf3] bg-white px-2 py-0.5 text-[10px] text-[#3f4657]">
+                                {tag}
+                            </Badge>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[300px_1fr]">
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[24px] font-semibold text-[#242a38]">
+                            <Star className="h-4 w-4" />
+                            Catégories Populaires
+                        </h2>
+                        <div className="space-y-2">
+                            {categories.map((category) => (
+                                <div key={category.name} className="flex items-center justify-between rounded-lg border border-[#ebeff6] bg-[#f8f9fc] px-3 py-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf3ff] text-[#3f7fe8]">
+                                            <Star className="h-3 w-3" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[12px] font-medium text-[#2f3647]">{category.name}</p>
+                                            <p className="text-[10px] text-[#8a92a3]">{category.count} portfolios</p>
+                                        </div>
+                                    </div>
+                                    <Badge className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]">
+                                        {category.delta}
+                                    </Badge>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[24px] font-semibold text-[#242a38]">
+                            <Trophy className="h-4 w-4" />
+                            Portfolios en Vedette
+                        </h2>
+
+                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                            {featuredPortfolios.map((item) => (
+                                <div key={item.id} className="rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3">
+                                    <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }} />
-                                            <span className="text-sm text-gray-600">{category.name}</span>
-                                        </div>
-                                        <span className="text-sm font-medium">{category.count}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Featured Portfolios */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Portfolios en Vedette</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-1">
-                                {featuredPortfolios.slice(0, 3).map((portfolio) => (
-                                    <div key={portfolio.id} className="border rounded-sm p-3">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <img
-                                                src={portfolio.avatar || "/placeholder.svg"}
-                                                alt={portfolio.candidateName}
-                                                className="w-8 h-8 rounded-full"
-                                            />
+                                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[10px] font-semibold text-white">
+                                                {item.initials}
+                                            </div>
                                             <div>
-                                                <h4 className="font-medium text-sm text-gray-900">{portfolio.candidateName}</h4>
-                                                <p className="text-xs text-gray-500">{portfolio.title}</p>
+                                                <p className="text-[12px] font-medium text-[#252c3b]">{item.name}</p>
+                                                <p className="text-[10px] text-[#7f8797]">{item.role}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                                            <div className="flex items-center gap-1">
-                                                <Eye className="w-3 h-3" />
-                                                {portfolio.views}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Heart className="w-3 h-3" />
-                                                {portfolio.likes}
-                                            </div>
+                                        <Badge className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]">
+                                            Vedette
+                                        </Badge>
+                                    </div>
+
+                                    <p className="mt-2 text-[13px] font-medium text-[#2d3443]">{item.title}</p>
+                                    <p className="mt-1 text-[11px] text-[#8a92a3]">{item.description}</p>
+
+                                    <div className="mt-2 flex items-center justify-between text-[10px] text-[#8a92a3]">
+                                        <span>{item.tags[0]}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {item.views}</span>
+                                            <span className="flex items-center gap-1"><Star className="h-3 w-3" /> {item.stars}</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Main Content */}
-                <div className="lg:col-span-3">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <CardTitle>Tous les Portfolios</CardTitle>
-                                <Button variant="outline" size="sm">
-                                    <Filter className="w-4 h-4 mr-2" />
-                                    Filtrer
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div
-                                className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-1"}
-                            >
-                                {portfolios.map((portfolio) => (
-                                    <div
-                                        key={portfolio.id}
-                                        className={`border rounded-sm p-4 hover:shadow-md transition-shadow ${viewMode === "list" ? "flex items-center gap-4" : ""}`}
-                                    >
-                                        <div className={`${viewMode === "list" ? "flex-shrink-0" : "mb-4"}`}>
-                                            <div className="w-16 h-16 bg-gray-200 rounded-sm flex items-center justify-center">
-                                                <FileText className="w-8 h-8 text-gray-400" />
-                                            </div>
-                                        </div>
-
-                                        <div className={`${viewMode === "list" ? "flex-1" : ""}`}>
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <img
-                                                        src={portfolio.avatar || "/placeholder.svg"}
-                                                        alt={portfolio.candidateName}
-                                                        className="w-8 h-8 rounded-full"
-                                                    />
-                                                    <div>
-                                                        <h3 className="font-semibold text-gray-900">{portfolio.candidateName}</h3>
-                                                        <p className="text-sm text-gray-600">{portfolio.title}</p>
-                                                    </div>
-                                                </div>
-                                                <Button variant="ghost" size="sm" onClick={() => handleLike(portfolio.id)}>
-                                                    <Heart className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-
-                                            <p className="text-sm text-gray-600 mb-3">{portfolio.description}</p>
-
-                                            <div className="flex flex-wrap gap-1 mb-3">
-                                                {portfolio.skills.slice(0, 3).map((skill) => (
-                                                    <Badge key={skill} variant="secondary" className="text-xs">
-                                                        {skill}
-                                                    </Badge>
-                                                ))}
-                                                {portfolio.skills.length > 3 && (
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        +{portfolio.skills.length - 3}
-                                                    </Badge>
-                                                )}
-                                            </div>
-
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4 text-sm text-gray-500">
-                                                    <div className="flex items-center gap-1">
-                                                        <Eye className="w-4 h-4" />
-                                                        {portfolio.views}
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <Download className="w-4 h-4" />
-                                                        {portfolio.downloads}
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <Heart className="w-4 h-4" />
-                                                        {portfolio.likes}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <Button variant="ghost" size="sm">
-                                                        <ExternalLink className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Mail className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
+
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <h2 className="mb-4 text-[30px] font-semibold text-[#242a38]">Tous les Portfolios</h2>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {filtered.map((item) => (
+                            <div key={item.id} className="rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3">
+                                <div className="mb-3 flex h-36 items-center justify-center rounded-lg border border-[#edf0f6] bg-[#f9fbff] text-[#8693a8]">
+                                    <Image className="h-8 w-8" />
+                                </div>
+
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[10px] font-semibold text-white">
+                                            {item.initials}
+                                        </div>
+                                        <div>
+                                            <p className="text-[12px] font-medium text-[#252c3b]">{item.name}</p>
+                                            <p className="text-[10px] text-[#7f8797]">{item.role}</p>
+                                        </div>
+                                    </div>
+                                    {item.featured ? (
+                                        <Badge className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]">Vedette</Badge>
+                                    ) : null}
+                                </div>
+
+                                <p className="mt-2 text-[13px] font-medium text-[#2d3443]">{item.title}</p>
+                                <p className="mt-1 text-[11px] text-[#8a92a3]">{item.description}</p>
+
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                    {item.tags.map((tag) => (
+                                        <Badge key={tag} className="rounded-full border border-[#e7ebf3] bg-white px-2 py-0.5 text-[10px] text-[#3f4657]">
+                                            {tag}
+                                        </Badge>
+                                    ))}
+                                </div>
+
+                                <div className="mt-3 flex items-center justify-between text-[10px] text-[#8a92a3]">
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {item.views}</span>
+                                        <span className="flex items-center gap-1"><Star className="h-3 w-3" /> {item.stars}</span>
+                                    </div>
+                                    <Button variant="ghost" className="h-6 w-6 p-0 text-[#697286] hover:bg-[#f2f5fb]">
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+
+                                <p className="mt-2 text-[10px] text-[#a0a8b7]">{item.update}</p>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
+    )
+}
+
+type KpiProps = {
+    title: string
+    value: string
+    icon: React.ComponentType<{ className?: string }>
+}
+
+function Kpi({ title, value, icon: Icon }: KpiProps) {
+    return (
+        <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+            <CardContent className="flex items-start justify-between px-4 py-4">
+                <div>
+                    <p className="text-[11px] text-[#8b92a3]">{title}</p>
+                    <p className="mt-3 text-[35px] leading-none font-semibold text-[#232a38]">{value}</p>
+                </div>
+                <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a89ef]">
+                    <Icon className="h-4 w-4 text-white" />
+                </div>
+            </CardContent>
+        </Card>
     )
 }

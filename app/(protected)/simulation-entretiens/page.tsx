@@ -1,375 +1,280 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Play, Pause, Settings, TrendingUp, Clock, Star, Users, Brain, BarChart3 } from "lucide-react"
-import type { IInterviewSession } from "@/lib/@types/entities"
+import {
+    Calendar,
+    MessageSquare,
+    Trophy,
+    Clock3,
+    Star,
+    Brain,
+    TrendingUp,
+    Users,
+    Mic,
+    Eye,
+} from "lucide-react"
+
+const stats = [
+    { label: "Sessions Aujourd'hui", value: "47", icon: MessageSquare },
+    { label: "Score Moyen", value: "84.2", icon: Trophy },
+    { label: "Durée Moyenne", value: "32min", icon: Clock3 },
+    { label: "Satisfaction", value: "4.7/5", icon: Star },
+]
+
+const performanceRows = [
+    { label: "Réussite Entretiens", value: 78 },
+    { label: "Satisfaction Candidats", value: 92 },
+    { label: "Taux de Complétion", value: 85 },
+]
+
+const activeSessions = [
+    {
+        initials: "SL",
+        name: "Sophie Laurent",
+        subtitle: "Data Science • 8/15 questions",
+        status: "En cours",
+        statusClass: "bg-[#edf0f6] text-[#3d4354]",
+    },
+    {
+        initials: "JM",
+        name: "Jules Moreau",
+        subtitle: "UX Design • Mode Premium",
+        status: "Programmé",
+        statusClass: "bg-[#2f80ed] text-white",
+    },
+]
+
+const historyRows = [
+    {
+        initials: "MD",
+        name: "Marie Dubois",
+        role: "Développement Web",
+        mode: "IA Chatbot",
+        details: "12 questions",
+        score: "87/100",
+        duration: "25 min",
+        status: "Terminé",
+        statusClass: "bg-[#2f80ed] text-white",
+    },
+    {
+        initials: "PM",
+        name: "Pierre Martin",
+        role: "Marketing Digital",
+        mode: "RH Premium",
+        details: "18 questions",
+        score: "92/100",
+        duration: "45 min",
+        status: "Terminé",
+        statusClass: "bg-[#2f80ed] text-white",
+    },
+    {
+        initials: "SL",
+        name: "Sophie Laurent",
+        role: "Data Science",
+        mode: "IA Chatbot",
+        details: "8 questions",
+        score: "",
+        duration: "",
+        status: "En cours",
+        statusClass: "bg-[#edf0f6] text-[#3d4354]",
+    },
+]
 
 export default function Page() {
-  const [stats, setStats] = useState<{
-    todaySessions: number
-    averageScore: number
-    averageDuration: string
-    satisfaction: number
-  } | null>(null)
-  const [activeSessions, setActiveSessions] = useState<IInterviewSession[]>([])
-  const [sessionHistory, setSessionHistory] = useState<IInterviewSession[]>([])
-  const [loading, setLoading] = useState(true)
+    return (
+        <div className="space-y-4">
+            <div>
+                <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Simulation d'Entretiens</h1>
+                <p className="mt-1 text-[14px] text-[#7f8797]">
+                    Gestion et analyse des entretiens IA et sessions avec professionnels RH
+                </p>
+            </div>
 
-  useEffect(() => {
-    loadData()
-  }, [])
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {stats.map((stat) => (
+                    <Card key={stat.label} className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                        <CardContent className="flex items-start justify-between px-4 py-4">
+                            <div>
+                                <p className="text-[11px] text-[#8b92a3]">{stat.label}</p>
+                                <p className="mt-3 text-[35px] leading-none font-semibold text-[#232a38]">{stat.value}</p>
+                            </div>
+                            <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a89ef]">
+                                <stat.icon className="h-4 w-4 text-white" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
 
-  const loadData = async () => {
-    try {
-      // Données de démonstration
-      setStats({
-        todaySessions: 47,
-        averageScore: 84.2,
-        averageDuration: "32min",
-        satisfaction: 4.7,
-      })
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
+                            <Brain className="h-4 w-4" />
+                            Configuration IA
+                        </h2>
 
-      setActiveSessions([
-        {
-          id: "1",
-          candidateName: "Sophie Laurent",
-          candidateEmail: "sophie.laurent@email.com",
-          position: "Développeur Frontend",
-          duration: 25,
-          score: 0,
-          status: "active",
-          startTime: "2024-01-16T14:30:00Z",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-          id: "2",
-          candidateName: "Jules Martin",
-          candidateEmail: "jules.martin@email.com",
-          position: "Data Scientist",
-          duration: 18,
-          score: 0,
-          status: "active",
-          startTime: "2024-01-16T15:00:00Z",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-      ])
+                        <div className="space-y-5 text-[12px]">
+                            <div>
+                                <p className="font-medium text-[#2d3443]">Chatbot IA Avancé</p>
+                                <p className="mt-1 text-[#8a92a3]">Questions adaptatives basées sur le profil</p>
+                                <div className="mt-2 flex justify-between text-[#4a5162]">
+                                    <span>Précision: 94%</span>
+                                    <span>Sessions: 1,247</span>
+                                </div>
+                            </div>
 
-      setSessionHistory([
-        {
-          id: "3",
-          candidateName: "Marie Dubois",
-          candidateEmail: "marie.dubois@email.com",
-          position: "UX Designer",
-          duration: 35,
-          score: 87,
-          status: "completed",
-          startTime: "2024-01-16T10:00:00Z",
-          feedback: "Excellente présentation, bonnes compétences techniques",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-          id: "4",
-          candidateName: "Pierre Martin",
-          candidateEmail: "pierre.martin@email.com",
-          position: "Marketing Digital",
-          duration: 28,
-          score: 92,
-          status: "completed",
-          startTime: "2024-01-16T11:30:00Z",
-          feedback: "Très bon candidat, expérience solide",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-          id: "5",
-          candidateName: "Sophie Laurent",
-          candidateEmail: "sophie.laurent@email.com",
-          position: "UX/UI Designer",
-          duration: 42,
-          score: 76,
-          status: "completed",
-          startTime: "2024-01-16T09:00:00Z",
-          feedback: "Bon potentiel, à développer",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-      ])
-    } catch (error) {
-      console.error("Erreur lors du chargement:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+                            <div>
+                                <p className="font-medium text-[#2d3443]">Mode Premium RH</p>
+                                <p className="mt-1 text-[#8a92a3]">Entretiens avec professionnels</p>
+                                <div className="mt-2 flex justify-between text-[#4a5162]">
+                                    <span>Disponible: 8 RH</span>
+                                    <span>Sessions: 156</span>
+                                </div>
+                            </div>
+                        </div>
 
-  if (loading) {
-    return <div className="p-6">Chargement...</div>
-  }
+                        <Button
+                            variant="outline"
+                            className="mt-5 h-9 w-full rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]"
+                        >
+                            <Mic className="h-3.5 w-3.5" />
+                            Configurer Scénarios
+                        </Button>
+                    </CardContent>
+                </Card>
 
-  return (
-    <div className="p-2 space-y-2">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Simulation d'Entretiens</h1>
-          <p className="text-gray-600">Gérer et analyser des entretiens IA avec des professionnels IA</p>
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
+                            <TrendingUp className="h-4 w-4" />
+                            Performances
+                        </h2>
+
+                        <div className="space-y-4">
+                            {performanceRows.map((row) => (
+                                <div key={row.label} className="space-y-1">
+                                    <div className="flex items-center justify-between text-[12px]">
+                                        <span className="text-[#3f4657]">{row.label}</span>
+                                        <span className="text-[#4a5162]">{row.value}%</span>
+                                    </div>
+                                    <Progress
+                                        value={row.value}
+                                        className="h-2 bg-[#ebeff8] [&_[data-slot=progress-indicator]]:bg-[#3f7fe8]"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-4 border-t border-[#eceff6] pt-3">
+                            <p className="text-[11px] text-[#8a92a3]">Domaines populaires:</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {[
+                                    "Développement",
+                                    "Marketing",
+                                    "Design",
+                                ].map((label) => (
+                                    <Badge
+                                        key={label}
+                                        className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]"
+                                    >
+                                        {label}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
+                            <Users className="h-4 w-4" />
+                            Sessions Actives
+                        </h2>
+
+                        <div className="space-y-3">
+                            {activeSessions.map((session) => (
+                                <div key={session.name} className="rounded-lg border border-[#e7ebf3] bg-[#f8f9fc] px-3 py-2">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                                {session.initials}
+                                            </div>
+                                            <div>
+                                                <p className="text-[12px] font-medium text-[#252c3b]">{session.name}</p>
+                                                <p className="text-[11px] text-[#7f8797]">{session.subtitle}</p>
+                                            </div>
+                                        </div>
+                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${session.statusClass}`}>
+                                            {session.status}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            className="mt-4 h-9 w-full rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]"
+                        >
+                            <Calendar className="h-3.5 w-3.5" />
+                            Voir Planning
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <h2 className="mb-4 text-[28px] font-semibold text-[#242a38]">Historique des Sessions</h2>
+
+                    <div className="space-y-3">
+                        {historyRows.map((row) => (
+                            <div
+                                key={`${row.name}-${row.mode}`}
+                                className="flex flex-col gap-3 rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                        {row.initials}
+                                    </div>
+                                    <div>
+                                        <p className="text-[12px] font-medium text-[#252c3b]">{row.name}</p>
+                                        <p className="text-[11px] text-[#7f8797]">{row.role}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-4 lg:justify-end">
+                                    <div className="text-right">
+                                        <p className="text-[12px] text-[#4a5162]">{row.mode}</p>
+                                        <p className="text-[10px] text-[#8a92a3]">{row.details}</p>
+                                    </div>
+                                    {row.score ? (
+                                        <div className="text-right">
+                                            <p className="text-[25px] font-semibold text-[#232a38]">{row.score}</p>
+                                            <p className="text-[10px] text-[#8a92a3]">{row.duration}</p>
+                                        </div>
+                                    ) : null}
+                                    <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${row.statusClass}`}>
+                                        {row.status}
+                                    </Badge>
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
+                                    >
+                                        <Eye className="h-3.5 w-3.5" />
+                                        Voir Détails
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
-        <Button>
-          <Play className="w-4 h-4 mr-2" />
-          Nouvelle Session
-        </Button>
-      </div>
-
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Sessions Aujourd'hui</p>
-                <p className="text-2xl font-bold text-blue-600">{stats?.todaySessions}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-sm flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Score Moyen</p>
-                <p className="text-2xl font-bold text-green-600">{stats?.averageScore}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-sm flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Durée Moyenne</p>
-                <p className="text-2xl font-bold text-purple-600">{stats?.averageDuration}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-sm flex items-center justify-center">
-                <Clock className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Satisfaction</p>
-                <p className="text-2xl font-bold text-orange-600">{stats?.satisfaction}/5</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-sm flex items-center justify-center">
-                <Star className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Configuration IA */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="w-5 h-5" />
-              Configuration IA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Chatbot IA Avancé</label>
-              <p className="text-sm text-gray-600 mb-3">Questions automatiques basées sur le profil</p>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Configurer
-              </Button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Analyse IA</label>
-              <p className="text-sm text-gray-600 mb-3">Évaluation automatique des réponses</p>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
-              </Button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Mode Premium RH</label>
-              <p className="text-sm text-gray-600 mb-3">Simulation avec professionnels RH</p>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Activer
-              </Button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Rapport IA</label>
-              <p className="text-sm text-gray-600 mb-3">Génération automatique de rapports</p>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Configurer Scenarios
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Performances */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Performances
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Questions Entretiens</span>
-                <span className="text-sm text-gray-600">78%</span>
-              </div>
-              <Progress value={78} className="h-2" />
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Satisfaction Candidats</span>
-                <span className="text-sm text-gray-600">92%</span>
-              </div>
-              <Progress value={92} className="h-2" />
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Taux de Completion</span>
-                <span className="text-sm text-gray-600">85%</span>
-              </div>
-              <Progress value={85} className="h-2" />
-            </div>
-
-            <div className="pt-4 border-t">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-lg font-bold text-blue-600">Management</p>
-                  <p className="text-xs text-gray-600">Marketing</p>
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-green-600">Marketing</p>
-                  <p className="text-xs text-gray-600">Design</p>
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-purple-600">Design</p>
-                  <p className="text-xs text-gray-600">Développement</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sessions Actives */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Sessions Actives
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {activeSessions.map((session) => (
-              <div key={session.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-sm">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={session.avatar || "/placeholder.svg"} />
-                  <AvatarFallback>
-                    {session.candidateName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{session.candidateName}</p>
-                  <p className="text-xs text-gray-600">{session.position}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="default" className="text-xs">
-                      En cours
-                    </Badge>
-                    <span className="text-xs text-gray-500">{session.duration}min</span>
-                  </div>
-                </div>
-                <Button size="sm" variant="outline">
-                  <Pause className="w-3 h-3" />
-                </Button>
-              </div>
-            ))}
-
-            <Button variant="outline" className="w-full bg-transparent">
-              Voir Planning
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Historique des Sessions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Historique des Sessions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {sessionHistory.map((session) => (
-              <div key={session.id} className="flex items-center justify-between p-4 border rounded-sm">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={session.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>
-                      {session.candidateName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">{session.candidateName}</h3>
-                    <p className="text-sm text-gray-600">{session.position}</p>
-                    <p className="text-xs text-gray-500">{new Date(session.startTime).toLocaleDateString("fr-FR")}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-blue-600">{session.score}/100</p>
-                    <p className="text-xs text-gray-600">Score final</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium">{session.duration}min</p>
-                    <p className="text-xs text-gray-600">Durée</p>
-                  </div>
-                  <Badge variant="default" className="bg-green-100 text-green-800">
-                    Terminé
-                  </Badge>
-                  <Button size="sm" variant="outline">
-                    Voir Détails
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+    )
 }

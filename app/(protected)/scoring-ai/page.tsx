@@ -1,283 +1,232 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Brain, TrendingUp, Clock, Target, BarChart3, Settings, Zap } from "lucide-react"
-import type { IScoringResult } from "@/lib/@types/entities"
-import type { IScoringCriteria } from "@/lib/services/scoring.service"
+import {
+    Brain,
+    Target,
+    Clock3,
+    Zap,
+    TrendingUp,
+    Settings,
+    CircleCheck,
+    TriangleAlert,
+} from "lucide-react"
+
+const stats = [
+    { label: "Scores Générés", value: "3,247", icon: Brain },
+    { label: "Score Moyen Global", value: "78.4", icon: Target },
+    { label: "Précision IA", value: "94.7%", icon: CircleCheck },
+    { label: "Temps Traitement", value: "1.8s", icon: Zap },
+]
+
+const criteriaRows = [
+    { label: "Compétences Techniques", weight: 30, score: 82 },
+    { label: "Expérience Professionnelle", weight: 25, score: 78 },
+    { label: "Formation & Certifications", weight: 20, score: 88 },
+    { label: "Soft Skills", weight: 15, score: 75 },
+    { label: "Présentation CV", weight: 10, score: 91 },
+]
+
+const bestDomains = [
+    { label: "Développement", value: "86.4" },
+    { label: "Design UX/UI", value: "83.7" },
+    { label: "Data Science", value: "81.2" },
+]
+
+const recentRows = [
+    {
+        name: "Alice Dupont",
+        role: "Développeuse Frontend",
+        score: "94/100",
+        status: "Excellent",
+        statusClass: "bg-[#2f80ed] text-white",
+        details: [
+            { value: "96", label: "Technique" },
+            { value: "89", label: "Expérience" },
+            { value: "98", label: "Formation" },
+            { value: "92", label: "Soft Skills" },
+            { value: "95", label: "Présentation" },
+        ],
+        recommendation: "3 recommandations d'amélioration",
+    },
+    {
+        name: "Marc Leblanc",
+        role: "Data Analyst",
+        score: "76/100",
+        status: "Bon",
+        statusClass: "bg-[#edf0f6] text-[#3d4354]",
+        details: [
+            { value: "78", label: "Technique" },
+            { value: "72", label: "Expérience" },
+            { value: "82", label: "Formation" },
+            { value: "74", label: "Soft Skills" },
+            { value: "78", label: "Présentation" },
+        ],
+        recommendation: "7 recommandations d'amélioration",
+    },
+    {
+        name: "Sarah Martin",
+        role: "Marketing Digital",
+        score: "68/100",
+        status: "Améliorable",
+        statusClass: "bg-[#edf0f6] text-[#3d4354]",
+        details: [
+            { value: "65", label: "Technique" },
+            { value: "58", label: "Expérience" },
+            { value: "75", label: "Formation" },
+            { value: "82", label: "Soft Skills" },
+            { value: "72", label: "Présentation" },
+        ],
+        recommendation: "12 recommandations d'amélioration",
+    },
+]
 
 export default function Page() {
-    const [stats, setStats] = useState<{
-        generatedScores: number
-        averageScore: number
-        accuracy: number
-        averageTime: string
-    } | null>(null)
-    const [criteria, setCriteria] = useState<IScoringCriteria[]>([])
-    const [recentAnalyses, setRecentAnalyses] = useState<IScoringResult[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        loadData()
-    }, [])
-
-    const loadData = async () => {
-        try {
-            // Données de démonstration
-            setStats({
-                generatedScores: 2247,
-                averageScore: 78.4,
-                accuracy: 94.7,
-                averageTime: "1.8s",
-            })
-
-            setCriteria([
-                { name: "Compétences Techniques", weight: 30, score: 85, maxScore: 100 },
-                { name: "Expérience Professionnelle", weight: 25, score: 78, maxScore: 100 },
-                { name: "Formation & Certifications", weight: 20, score: 92, maxScore: 100 },
-                { name: "Soft Skills", weight: 15, score: 74, maxScore: 100 },
-                { name: "Présentation CV", weight: 10, score: 88, maxScore: 100 },
-            ])
-
-            setRecentAnalyses([
-                {
-                    id: "1",
-                    candidateName: "Alice Dupont",
-                    candidateEmail: "alice.dupont@email.com",
-                    position: "Développeur Full Stack",
-                    overallScore: 94,
-                    criteria: [],
-                    analysisDate: "2024-01-16T10:30:00Z",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                    status: "completed",
-                },
-                {
-                    id: "2",
-                    candidateName: "Marc Leblanc",
-                    candidateEmail: "marc.leblanc@email.com",
-                    position: "UX Designer",
-                    overallScore: 78,
-                    criteria: [],
-                    analysisDate: "2024-01-16T09:15:00Z",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                    status: "completed",
-                },
-                {
-                    id: "3",
-                    candidateName: "Sarah Martin",
-                    candidateEmail: "sarah.martin@email.com",
-                    position: "Data Scientist",
-                    overallScore: 89,
-                    criteria: [],
-                    analysisDate: "2024-01-16T08:45:00Z",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                    status: "completed",
-                },
-            ])
-        } catch (error) {
-            console.error("Erreur lors du chargement:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    if (loading) {
-        return <div className="p-6">Chargement...</div>
-    }
-
     return (
-        <div className="p-2 space-y-2">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Scoring IA Avancé</h1>
-                    <p className="text-gray-600">Analyse et score les candidats avec des algorithmes avancés</p>
-                </div>
-                <Button>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Nouvelle Analyse
-                </Button>
+        <div className="space-y-4">
+            <div>
+                <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Scoring IA Avancé</h1>
+                <p className="mt-1 text-[14px] text-[#7f8797]">
+                    Algorithmes d'évaluation et scoring intelligent des profils candidats
+                </p>
             </div>
 
-            {/* Statistiques */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {stats.map((stat) => (
+                    <Card key={stat.label} className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                        <CardContent className="flex items-start justify-between px-4 py-4">
                             <div>
-                                <p className="text-sm text-gray-600">Scores Générés</p>
-                                <p className="text-2xl font-bold text-blue-600">{stats?.generatedScores.toLocaleString()}</p>
+                                <p className="text-[11px] text-[#8b92a3]">{stat.label}</p>
+                                <p className="mt-3 text-[35px] leading-none font-semibold text-[#232a38]">{stat.value}</p>
                             </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-sm flex items-center justify-center">
-                                <Brain className="w-6 h-6 text-blue-600" />
+                            <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a89ef]">
+                                <stat.icon className="h-4 w-4 text-white" />
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Score Moyen</p>
-                                <p className="text-2xl font-bold text-green-600">{stats?.averageScore}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-sm flex items-center justify-center">
-                                <TrendingUp className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Précision</p>
-                                <p className="text-2xl font-bold text-purple-600">{stats?.accuracy}%</p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-sm flex items-center justify-center">
-                                <Target className="w-6 h-6 text-purple-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600">Temps Moyen</p>
-                                <p className="text-2xl font-bold text-orange-600">{stats?.averageTime}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-orange-100 rounded-sm flex items-center justify-center">
-                                <Clock className="w-6 h-6 text-orange-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Critères de Scoring */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                                <BarChart3 className="w-5 h-5" />
-                                Critères de Scoring
-                            </CardTitle>
-                            <Button variant="outline" size="sm">
-                                <Settings className="w-4 h-4 mr-2" />
-                                Configurer
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {criteria.map((criterion, index) => (
-                            <div key={index} className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">{criterion.name}</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-gray-600">{criterion.weight}%</span>
-                                        <span className="text-sm font-bold">
-                                            {criterion.score}/{criterion.maxScore}
-                                        </span>
-                                    </div>
-                                </div>
-                                <Progress value={criterion.score} className="h-2" />
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-
-                {/* Performances Algorithmiques */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Brain className="w-5 h-5" />
-                            Performances Algorithmiques
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-4 bg-blue-50 rounded-sm">
-                                <p className="text-2xl font-bold text-blue-600">847</p>
-                                <p className="text-sm text-gray-600">Analyses Complètes</p>
-                            </div>
-                            <div className="text-center p-4 bg-green-50 rounded-sm">
-                                <p className="text-2xl font-bold text-green-600">234</p>
-                                <p className="text-sm text-gray-600">Recommandations</p>
-                            </div>
-                        </div>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
+                            <Target className="h-4 w-4" />
+                            Critères de Scoring
+                        </h2>
 
                         <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm">Précision Technique</span>
-                                <span className="text-sm font-bold">96.2%</span>
+                            {criteriaRows.map((row) => (
+                                <div key={row.label} className="space-y-1">
+                                    <div className="flex items-center justify-between text-[12px]">
+                                        <span className="text-[#3f4657]">{row.label}</span>
+                                        <div className="flex items-center gap-3 text-[#8b92a3]">
+                                            <span>Poids: {row.weight}%</span>
+                                            <span className="text-[#4a5162]">{row.score}/100</span>
+                                        </div>
+                                    </div>
+                                    <Progress
+                                        value={row.score}
+                                        className="h-2 bg-[#ebeff8] [&_[data-slot=progress-indicator]]:bg-[#3f7fe8]"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            className="mt-5 h-9 w-full rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]"
+                        >
+                            <Settings className="h-3.5 w-3.5" />
+                            Ajuster les Pondérations
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
+                            <TrendingUp className="h-4 w-4" />
+                            Performance Algorithme
+                        </h2>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <p className="flex items-center gap-1 text-[12px] font-semibold text-[#24b36f]">
+                                    <CircleCheck className="h-3.5 w-3.5" />
+                                    Scores Excellents
+                                </p>
+                                <p className="mt-1 text-[34px] font-semibold leading-none text-[#232a38]">847</p>
+                                <p className="mt-1 text-[10px] text-[#8a92a3]">+15% ce mois</p>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm">Évaluation Expérience</span>
-                                <span className="text-sm font-bold">94.8%</span>
+                            <div>
+                                <p className="flex items-center gap-1 text-[12px] font-semibold text-[#f0a04b]">
+                                    <TriangleAlert className="h-3.5 w-3.5" />
+                                    À Améliorer
+                                </p>
+                                <p className="mt-1 text-[34px] font-semibold leading-none text-[#232a38]">234</p>
+                                <p className="mt-1 text-[10px] text-[#8a92a3]">-8% ce mois</p>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm">Analyse Soft Skills</span>
-                                <span className="text-sm font-bold">91.5%</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm">Score Global</span>
-                                <span className="text-sm font-bold">94.2%</span>
+                        </div>
+
+                        <div className="mt-5 border-t border-[#eceff6] pt-3">
+                            <p className="mb-2 text-[11px] text-[#8a92a3]">Domaines les mieux scorés</p>
+                            <div className="space-y-2">
+                                {bestDomains.map((domain) => (
+                                    <div key={domain.label} className="flex items-center justify-between text-[12px]">
+                                        <span className="text-[#3f4657]">{domain.label}</span>
+                                        <span className="text-[#4a5162]">{domain.value}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Analyses Récentes */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Analyses Récentes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {recentAnalyses.map((analysis) => (
-                            <div key={analysis.id} className="flex items-center justify-between p-4 border rounded-sm">
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="w-12 h-12">
-                                        <AvatarImage src={analysis.avatar || "/placeholder.svg"} />
-                                        <AvatarFallback>
-                                            {analysis.candidateName
-                                                .split(" ")
-                                                .map((n) => n[0])
-                                                .join("")}
-                                        </AvatarFallback>
-                                    </Avatar>
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <h2 className="mb-4 text-[28px] font-semibold text-[#242a38]">Analyses Récentes</h2>
+
+                    <div className="space-y-3">
+                        {recentRows.map((row) => (
+                            <div key={row.name} className="rounded-[10px] border border-[#e7ebf3] bg-white px-4 py-3">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                     <div>
-                                        <h3 className="font-medium">{analysis.candidateName}</h3>
-                                        <p className="text-sm text-gray-600">{analysis.position}</p>
-                                        <p className="text-xs text-gray-500">
-                                            {new Date(analysis.analysisDate).toLocaleDateString("fr-FR")} à{" "}
-                                            {new Date(analysis.analysisDate).toLocaleTimeString("fr-FR", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
-                                        </p>
+                                        <p className="text-[12px] font-medium text-[#252c3b]">{row.name}</p>
+                                        <p className="text-[11px] text-[#7f8797]">{row.role}</p>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <p className="text-[31px] font-semibold text-[#232a38]">{row.score}</p>
+                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${row.statusClass}`}>
+                                            {row.status}
+                                        </Badge>
+                                        <Button
+                                            variant="outline"
+                                            className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
+                                        >
+                                            Voir Détail
+                                        </Button>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4">
-                                    <div className="text-center">
-                                        <p className="text-2xl font-bold text-blue-600">{analysis.overallScore}/100</p>
-                                        <p className="text-xs text-gray-600">Score Global</p>
-                                    </div>
-                                    <Badge variant="default" className="bg-green-100 text-green-800">
-                                        Terminé
-                                    </Badge>
-                                    <Button size="sm" variant="outline">
-                                        Voir Rapport
+                                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
+                                    {row.details.map((detail) => (
+                                        <div key={detail.label} className="text-center">
+                                            <p className="text-[13px] font-semibold text-[#4a5162]">{detail.value}</p>
+                                            <p className="text-[10px] text-[#8a92a3]">{detail.label}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="mt-3 flex items-center justify-between border-t border-[#edf0f6] pt-2">
+                                    <p className="text-[10px] text-[#8a92a3]">{row.recommendation}</p>
+                                    <Button variant="ghost" className="h-7 rounded-md px-2 text-[11px] text-[#4d5567] hover:bg-[#f5f7fc]">
+                                        Générer Rapport
                                     </Button>
                                 </div>
                             </div>

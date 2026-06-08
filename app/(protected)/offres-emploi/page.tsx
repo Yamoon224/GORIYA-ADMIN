@@ -1,334 +1,319 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useMemo, useState } from "react"
+import {
+    Briefcase,
+    Calendar,
+    Eye,
+    Filter,
+    MapPin,
+    Plus,
+    Search,
+    Users,
+    TrendingUp,
+    Building2,
+    CircleAlert,
+    Workflow,
+    Sparkles,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { jobService } from "@/lib/services/job.service"
-import type { IJobOffer } from "@/lib/@types/entities"
-import { Briefcase, MapPin, Calendar, Users, Plus, Search, Filter, MoreHorizontal, Eye, Edit } from "lucide-react"
+import { AddJobModal } from "@/components/modals/add-job-modal"
+
+const jobRows = [
+    {
+        id: "1",
+        title: "Développeur React Senior",
+        company: "TechCorp Solutions",
+        location: "Paris, France",
+        contract: "CDI",
+        salary: "55k - 70k €",
+        candidates: 42,
+        date: "2024-03-10",
+        status: "Active",
+        statusClass: "bg-[#24bf7e] text-white",
+    },
+    {
+        id: "2",
+        title: "Chef de Projet Marketing Digital",
+        company: "Digital Marketing Pro",
+        location: "Lyon, France",
+        contract: "CDI",
+        salary: "45k - 55k €",
+        candidates: 38,
+        date: "2024-03-12",
+        status: "Active",
+        statusClass: "bg-[#24bf7e] text-white",
+    },
+    {
+        id: "3",
+        title: "Ingénieur DevOps",
+        company: "Green Energy Corp",
+        location: "Toulouse, France",
+        contract: "CDI",
+        salary: "50k - 65k €",
+        candidates: 29,
+        date: "2024-03-08",
+        status: "Urgent",
+        statusClass: "bg-[#ff5a5a] text-white",
+    },
+]
+
+const sectorStats = [
+    { label: "Technologie", value: "2,847", barClass: "bg-[#6366f1]", widthClass: "w-[74px]" },
+    { label: "Marketing", value: "1,923", barClass: "bg-[#6366f1]", widthClass: "w-[46px]" },
+    { label: "Finance", value: "1,456", barClass: "bg-[#27c48f]", widthClass: "w-[40px]" },
+    { label: "Design", value: "987", barClass: "bg-[#ef9435]", widthClass: "w-[26px]" },
+]
 
 export default function Page() {
-    const [stats, setStats] = useState({
-        activeOffers: 8456,
-        interestedCandidates: 34567,
-        satisfactionRate: 87,
-        newOffers: 127,
-    })
-    const [jobOffers, setJobOffers] = useState<IJobOffer[]>([])
-    const [sectorDistribution, setSectorDistribution] = useState([
-        { name: "Technologie", count: 2847, color: "#3B82F6" },
-        { name: "Marketing", count: 1563, color: "#10B981" },
-        { name: "Vente", count: 1245, color: "#F59E0B" },
-        { name: "Design", count: 801, color: "#EF4444" },
-    ])
-    const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsData, offersData, sectorsData] = await Promise.all([
-                    jobService.getStats(),
-                    jobService.getJobs({ page: 1, limit: 10 }),
-                    jobService.getSectorDistribution(),
-                ])
-
-                setStats(statsData)
-                setJobOffers(
-                    offersData.offers || [
-                        {
-                            id: "1",
-                            title: "Développeur React Senior",
-                            company: "TechCorp Solutions",
-                            location: "Paris, France",
-                            type: "CDI",
-                            salary: "55k - 70k €",
-                            postedDate: "2024-01-15",
-                            applicants: 23,
-                            status: "active",
-                            description: "Nous recherchons un développeur React expérimenté...",
-                        },
-                        {
-                            id: "2",
-                            title: "Digital Product Marketing Digital",
-                            company: "Marketing Pro",
-                            location: "Lyon, France",
-                            type: "CDI",
-                            salary: "45k - 60k €",
-                            postedDate: "2024-01-14",
-                            applicants: 18,
-                            status: "active",
-                            description: "Rejoignez notre équipe marketing dynamique...",
-                        },
-                        {
-                            id: "3",
-                            title: "Ingénieur DevOps",
-                            company: "Cloud Systems",
-                            location: "Remote",
-                            type: "CDI",
-                            salary: "60k - 80k €",
-                            postedDate: "2024-01-13",
-                            applicants: 31,
-                            status: "active",
-                            description: "Expertise en infrastructure cloud requise...",
-                        },
-                    ],
-                )
-                setSectorDistribution(sectorsData || sectorDistribution)
-            } catch (error) {
-                console.error("Erreur lors du chargement des données:", error)
-            } finally {
-                setLoading(false)
-            }
+    const filteredJobs = useMemo(() => {
+        const normalized = searchTerm.trim().toLowerCase()
+        if (!normalized) {
+            return jobRows
         }
 
-        fetchData()
-    }, [])
-
-    const getStatusBadge = (status: string) => {
-        const variants = {
-            active: "bg-green-100 text-green-800",
-            closed: "bg-red-100 text-red-800",
-            draft: "bg-yellow-100 text-yellow-800",
-        }
-        return variants[status as keyof typeof variants] || variants.active
-    }
-
-    const getTypeBadge = (type: string) => {
-        const variants = {
-            CDI: "bg-blue-100 text-blue-800",
-            CDD: "bg-purple-100 text-purple-800",
-            Stage: "bg-orange-100 text-orange-800",
-            Freelance: "bg-gray-100 text-gray-800",
-        }
-        return variants[type as keyof typeof variants] || variants.CDI
-    }
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64">Chargement...</div>
-    }
+        return jobRows.filter((job) =>
+            [job.title, job.company, job.location].some((value) => value.toLowerCase().includes(normalized)),
+        )
+    }, [searchTerm])
 
     return (
-        <div className="p-2 space-y-2">
-            {/* Header */}
-            <div className="flex justify-between items-center">
+        <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Offres d'Emploi</h1>
-                    <p className="text-gray-600">Gérez toutes les offres d'emploi et les candidatures</p>
+                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Offres d'Emploi</h1>
+                    <p className="mt-1 text-[14px] text-[#7f8797]">Gérez toutes les annonces d'emploi sur la plateforme</p>
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
+
+                <Button
+                    className="mt-1 h-9 rounded-full bg-[#0f56d9] px-5 text-[12px] font-semibold text-white hover:bg-[#0a4cc5]"
+                    onClick={() => setIsAddModalOpen(true)}
+                >
+                    <Plus className="h-3.5 w-3.5" />
                     Nouvelle Offre
                 </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Offres Actives</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.activeOffers.toLocaleString()}</p>
-                                <p className="text-xs text-gray-500">+12% ce mois</p>
-                            </div>
-                            <div className="w-12 h-12 bg-orange-100 rounded-sm flex items-center justify-center">
-                                <Briefcase className="w-6 h-6 text-orange-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Candidats Intéressés</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.interestedCandidates.toLocaleString()}</p>
-                                <p className="text-xs text-gray-500">+8% ce mois</p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-sm flex items-center justify-center">
-                                <Users className="w-6 h-6 text-purple-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Taux de Satisfaction</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.satisfactionRate}%</p>
-                                <p className="text-xs text-gray-500">+3% ce mois</p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-sm flex items-center justify-center">
-                                <Calendar className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Nouvelles Offres</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.newOffers}</p>
-                                <p className="text-xs text-gray-500">Cette semaine</p>
-                            </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-sm flex items-center justify-center">
-                                <Plus className="w-6 h-6 text-blue-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <KpiCard
+                    title="Offres Actives"
+                    value="8,456"
+                    subtitle="Annonces publiées"
+                    note="+5% par rapport au mois dernier"
+                    borderClass="border-[#f0b475]"
+                    iconClass="bg-[#ee9b3b]"
+                    icon={Briefcase}
+                />
+                <KpiCard
+                    title="Candidatures Totales"
+                    value="34,567"
+                    subtitle="Ce mois"
+                    note="+18% par rapport au mois dernier"
+                    borderClass="border-[#a777ff]"
+                    iconClass="bg-[#8550e9]"
+                    icon={Users}
+                />
+                <KpiCard
+                    title="Taux de Match IA"
+                    value="87%"
+                    subtitle="Correspondances réussies"
+                    note="+12% par rapport au mois dernier"
+                    borderClass="border-[#55d5ac]"
+                    iconClass="bg-[#2db77f]"
+                    icon={TrendingUp}
+                />
+                <KpiCard
+                    title="Nouvelles Entreprises"
+                    value="127"
+                    subtitle="Recruteurs ce mois"
+                    note="+8% par rapport au mois dernier"
+                    borderClass="border-[#d9dce6]"
+                    iconClass="bg-[#4a89ef]"
+                    icon={Building2}
+                />
             </div>
 
-            {/* Search and Filters */}
-            <div className="flex gap-4 items-center">
-                <div className="flex-1 relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <Input placeholder="Rechercher une offre, entreprise, localisation..." className="pl-10" />
-                </div>
-                <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtrer
-                </Button>
-                <Button variant="outline">Exporter</Button>
-                <Button variant="outline">Voir en grille</Button>
-            </div>
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8f96a7]" />
+                            <Input
+                                value={searchTerm}
+                                onChange={(event) => setSearchTerm(event.target.value)}
+                                placeholder="Rechercher par titre, entreprise, localisation..."
+                                className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] pl-9 text-[12px] text-[#313847] shadow-none"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <Button variant="outline" className="h-10 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-4 text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]">
+                                <Filter className="h-3.5 w-3.5" />
+                                Type de contrat
+                            </Button>
+                            <Button variant="outline" className="h-10 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-4 text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]">
+                                <MapPin className="h-3.5 w-3.5" />
+                                Localisation
+                            </Button>
+                            <Button variant="outline" className="h-10 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-4 text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]">
+                                <Calendar className="h-3.5 w-3.5" />
+                                Date de publication
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Job Offers List */}
-                <div className="lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Liste des Offres d'Emploi</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {jobOffers.map((offer) => (
-                                    <div key={offer.id} className="border rounded-sm p-4 hover:bg-gray-50 transition-colors">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-12 h-12 bg-blue-100 rounded-sm flex items-center justify-center">
-                                                    <Briefcase className="w-6 h-6 text-blue-600" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h3 className="font-semibold text-gray-900">{offer.title}</h3>
-                                                    <p className="text-sm text-gray-600">{offer.company}</p>
-                                                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                                                        <div className="flex items-center gap-1">
-                                                            <MapPin className="w-4 h-4" />
-                                                            {offer.location}
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <Calendar className="w-4 h-4" />
-                                                            {new Date(offer.postedDate).toLocaleDateString("fr-FR")}
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <Users className="w-4 h-4" />
-                                                            {offer.applicants} candidats
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-3">
-                                                        <Badge className={getTypeBadge(offer.type)}>{offer.type}</Badge>
-                                                        <Badge className={getStatusBadge(offer.status)}>
-                                                            {offer.status === "active" ? "Active" : offer.status}
-                                                        </Badge>
-                                                        <span className="text-sm font-medium text-gray-900">{offer.salary}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button variant="ghost" size="sm">
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="sm">
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreHorizontal className="w-4 h-4" />
-                                                </Button>
-                                            </div>
+            <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <h2 className="mb-4 text-[24px] font-semibold text-[#242a38]">Liste des Offres d'Emploi</h2>
+
+                    <div className="space-y-3">
+                        {filteredJobs.map((job) => (
+                            <div
+                                key={job.id}
+                                className="flex flex-col gap-3 rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-white">
+                                        <Briefcase className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[12px] font-medium text-[#252c3b]">{job.title}</p>
+                                        <p className="text-[11px] text-[#7f8797]">{job.company}</p>
+                                        <div className="mt-1 flex items-center gap-2 text-[10px] text-[#8a92a3]">
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="h-3 w-3" />
+                                                {job.location}
+                                            </span>
+                                            <Badge className="rounded-full border-0 bg-[#f1f3f7] px-2 py-0.5 text-[10px] text-[#202737]">
+                                                {job.contract}
+                                            </Badge>
+                                            <span className="text-[#24b36f]">{job.salary}</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                                </div>
 
-                {/* Sidebar */}
-                <div className="space-y-6">
-                    {/* Sector Distribution */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Répartition par Secteur</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                {sectorDistribution.map((sector) => (
-                                    <div key={sector.name} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: sector.color }} />
-                                            <span className="text-sm text-gray-600">{sector.name}</span>
-                                        </div>
-                                        <span className="text-sm font-medium">{sector.count}</span>
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+                                    <div className="text-right">
+                                        <p className="text-[13px] font-semibold text-[#2b78f6]">{job.candidates}</p>
+                                        <p className="text-[10px] text-[#8a92a3]">Candidatures</p>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Quick Actions */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Actions de Gestion</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <Button variant="outline" className="w-full justify-start bg-transparent">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Ajouter une Offre d'Emploi
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start bg-transparent">
-                                    <Users className="w-4 h-4 mr-2" />
-                                    Importer des Candidats
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start bg-transparent">
-                                    <Calendar className="w-4 h-4 mr-2" />
-                                    Planifier un Entretien
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start bg-transparent">
-                                    <Briefcase className="w-4 h-4 mr-2" />
-                                    Gérer les Applications
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Alert */}
-                    <Card className="border-orange-200 bg-orange-50">
-                        <CardContent className="p-4">
-                            <div className="flex items-start gap-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2" />
-                                <div>
-                                    <p className="text-sm font-medium text-orange-800">Offres Importantes</p>
-                                    <p className="text-xs text-orange-600 mt-1">
-                                        12 offres expirent dans les 7 prochains jours. Consultez-les pour les renouveler ou les archiver.
-                                    </p>
-                                    <Button variant="link" className="text-orange-700 p-0 h-auto text-xs mt-2">
-                                        Voir les offres expirantes
+                                    <div className="text-right">
+                                        <p className="text-[11px] text-[#4a5162]">{job.date}</p>
+                                        <p className="text-[10px] text-[#8a92a3]">Publié le</p>
+                                    </div>
+                                    <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${job.statusClass}`}>
+                                        {job.status}
+                                    </Badge>
+                                    <Button variant="outline" className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]">
+                                        <Eye className="h-3.5 w-3.5" />
+                                        Voir Détails
                                     </Button>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 text-[24px] font-semibold text-[#242a38]">Statistiques par Secteur</h2>
+                        <div className="space-y-3">
+                            {sectorStats.map((item) => (
+                                <div key={item.label} className="flex items-center justify-between gap-4">
+                                    <span className="w-28 text-[12px] text-[#2a3140]">{item.label}</span>
+                                    <div className="flex flex-1 items-center justify-end gap-3">
+                                        <div className={`h-1.5 rounded-full ${item.barClass} ${item.widthClass}`} />
+                                        <span className="w-10 text-right text-[11px] text-[#6c7588]">{item.value}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                    <CardContent className="px-4 py-4">
+                        <h2 className="mb-4 text-[24px] font-semibold text-[#242a38]">Actions de Gestion</h2>
+                        <div className="space-y-2">
+                            {[
+                                "Créer une Nouvelle Offre",
+                                "Offres Expirantes (23)",
+                                "Rapport de Performance",
+                                "Gérer les Candidatures",
+                            ].map((label) => (
+                                <Button
+                                    key={label}
+                                    variant="outline"
+                                    className="h-9 w-full justify-start rounded-lg border-[#eceff5] bg-[#f8f9fc] px-3 text-[12px] text-[#41495a] hover:bg-[#f1f4fa]"
+                                >
+                                    <Workflow className="h-3.5 w-3.5" />
+                                    {label}
+                                </Button>
+                            ))}
+                            <Button className="h-9 w-full justify-start rounded-lg border border-[#2f80ed] bg-white px-3 text-[12px] text-[#2f80ed] hover:bg-[#eef5ff]">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Matching IA Automatique
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
+
+            <Card className="rounded-[10px] border border-[#f6d7b8] bg-[#fff9f2] py-0 shadow-none">
+                <CardContent className="px-4 py-4">
+                    <div className="flex items-start gap-2">
+                        <CircleAlert className="mt-0.5 h-4 w-4 text-[#f0a04b]" />
+                        <div>
+                            <p className="text-[13px] font-semibold text-[#f0a04b]">Offres Urgentes</p>
+                            <p className="mt-1 text-[11px] text-[#8a7b69]">
+                                23 offres d'emploi expirent dans les 7 prochains jours. Contactez les entreprises pour renouveler ou prolonger.
+                            </p>
+                            <Button variant="outline" className="mt-2 h-7 rounded-full border-[#f0c28e] bg-white px-3 text-[10px] text-[#cb7b1b] hover:bg-[#fff5e8]">
+                                Voir les Offres Expirantes
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <AddJobModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSubmit={() => setIsAddModalOpen(false)} />
         </div>
+    )
+}
+
+type KpiCardProps = {
+    title: string
+    value: string
+    subtitle: string
+    note: string
+    borderClass: string
+    iconClass: string
+    icon: React.ComponentType<{ className?: string }>
+}
+
+function KpiCard({ title, value, subtitle, note, borderClass, iconClass, icon: Icon }: KpiCardProps) {
+    return (
+        <Card className={`rounded-[10px] border bg-white py-0 shadow-none ${borderClass}`}>
+            <CardContent className="flex items-start justify-between px-4 py-4">
+                <div>
+                    <p className="text-[11px] text-[#8b92a3]">{title}</p>
+                    <p className="mt-3 text-[35px] leading-none font-semibold text-[#232a38]">{value}</p>
+                    <p className="mt-1 text-[10px] text-[#8b92a3]">{subtitle}</p>
+                    <p className="mt-1 text-[10px] text-[#23b26f]">{note}</p>
+                </div>
+                <div className={`mt-1 flex h-7 w-7 items-center justify-center rounded-lg ${iconClass}`}>
+                    <Icon className="h-4 w-4 text-white" />
+                </div>
+            </CardContent>
+        </Card>
     )
 }
