@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { authService } from "@/lib/services/auth.service"
-import { Mail, Phone, Globe } from "lucide-react"
+import { Mail, Phone, Globe, Eye, EyeOff } from "lucide-react"
 import { AppLogo } from "@/components/app-logo"
 import { toast } from "sonner"
 
@@ -17,6 +17,7 @@ export default function Page() {
         password: "",
     })
     const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -40,56 +41,66 @@ export default function Page() {
     }
 
     return (
-        <div className="relative h-screen overflow-x-hidden overflow-y-auto">
+        <div className="relative min-h-dvh overflow-x-hidden overflow-y-auto md:overflow-hidden">
             <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/images/bg-auth.png)" }} />
             <div className="absolute inset-0 bg-[#1f4ea6]/35" />
 
-            <div className="relative z-10 min-h-full px-4 py-8 md:px-0 md:py-0">
-                <div className="mx-auto flex min-h-full w-full max-w-[1365px] items-center justify-between">
-                    <div className="hidden md:flex min-h-screen w-full items-end pb-[170px] pl-[110px]">
+            <div className="relative z-10 min-h-dvh px-4 py-6 sm:py-8 md:px-0 md:py-0">
+                <div className="mx-auto flex min-h-dvh w-full max-w-[1365px] items-start justify-center md:items-center md:justify-between">
+                    <div className="hidden md:flex min-h-screen w-full items-end pb-[190px] pl-[20px]">
                         <div className="w-[780px]">
-                            <h1 className="text-[58px] leading-none font-light text-white">Bienvenue</h1>
+                            <h1 className="text-[38px] leading-none font-light text-white">Bienvenue</h1>
                         </div>
                     </div>
 
-                    <div className="relative w-full md:mr-[95px] md:w-auto md:pt-[95px]">
-                        <div className="mx-auto w-full rounded-[28px] bg-white/95 p-7 shadow-2xl backdrop-blur-[1px] md:mx-0 md:w-[495px] md:p-8">
-                            <div className="mb-10 text-center">
+                    <div className="relative w-full max-w-[450px] md:mr-[95px] md:-mt-[120px] md:w-auto">
+                        <div className="mx-auto w-full rounded-t-[28px] rounded-b-none bg-white/95 p-5 shadow-2xl backdrop-blur-[1px] sm:p-6 md:mx-0 md:w-[450px] md:p-8">
+                            <div className="mb-4 text-center">
                                 <div className="mb-2 flex items-center justify-center">
                                     <AppLogo width={172} />
                                 </div>
-                                <p className="text-[28px] text-gray-600 md:text-[36px]">Portail Goriya Admin</p>
+                                <p className="text-[15px] text-gray-600 sm:text-[16px] md:text-[18px]">Portail Goriya Admin</p>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                                 <div className="space-y-2">
-                                    <label className="block text-[17px] text-[#5c5f66]">Adresse administrateur</label>
+                                    <label className="block text-[14px] text-[#5c5f66]">Adresse administrateur</label>
                                     <Input
                                         type="email"
                                         value={credentials.email}
                                         placeholder=""
                                         onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                                         required
-                                        className="h-[52px] rounded-xl border-0 bg-[#eef0f4] px-4 text-[16px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300"
+                                        className="h-[44px] rounded-xl border-0 bg-[#eef0f4] px-4 text-[16px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300 md:h-[40px]"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="block text-[17px] text-[#5c5f66]">Mot de passe</label>
-                                    <Input
-                                        type="password"
-                                        value={credentials.password}
-                                        placeholder=""
-                                        onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                                        required
-                                        className="h-[52px] rounded-xl border-0 bg-[#eef0f4] px-4 text-[16px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300"
-                                    />
+                                    <label className="block text-[14px] text-[#5c5f66]">Mot de passe</label>
+                                    <div className="relative">
+                                        <Input
+                                            type={showPassword ? "text" : "password"}
+                                            value={credentials.password}
+                                            placeholder=""
+                                            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                                            required
+                                            className="h-[44px] rounded-xl border-0 bg-[#eef0f4] px-4 pr-11 text-[16px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300 md:h-[40px]"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-[#5c5f66] hover:text-[#2f3136]"
+                                            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div className="pt-2">
+                                <div className="pt-2 md:flex md:justify-end">
                                     <Button
                                         type="submit"
-                                        className="h-[51px] w-full rounded-full bg-gradient-to-r from-[#2680ff] to-[#0037bd] text-[25px] font-semibold text-white hover:from-[#2d87ff] hover:to-[#0034ad] md:w-[215px] md:ml-auto"
+                                        className="h-[44px] w-full rounded-full bg-gradient-to-r from-[#2680ff] to-[#0037bd] text-[16px] font-semibold text-white hover:from-[#2d87ff] hover:to-[#0034ad] md:h-[40px] md:w-1/2"
                                         disabled={loading}
                                     >
                                         {loading ? "Connexion..." : "Connexion"}
@@ -98,8 +109,8 @@ export default function Page() {
                             </form>
                         </div>
 
-                        <div className="mx-auto mt-4 w-full rounded-[0_0_26px_26px] bg-black/45 px-8 py-5 text-white backdrop-blur-sm md:absolute md:left-0 md:top-[468px] md:mt-0 md:w-[495px]">
-                            <div className="space-y-3 text-[15px] leading-tight font-light">
+                        <div className="mx-auto mt-0 w-full rounded-[0_0_26px_26px] bg-black/45 px-5 py-3 text-white backdrop-blur-sm sm:px-6 md:absolute md:left-0 md:top-full md:mt-0 md:w-[450px] md:px-8 md:py-2">
+                            <div className="space-y-2 text-[14px] leading-tight font-light sm:text-[15px] md:space-y-3">
                                 <div className="flex items-start gap-3">
                                     <Mail className="mt-0.5 h-5 w-5 shrink-0" />
                                     <div>
@@ -110,15 +121,15 @@ export default function Page() {
                                 <div className="flex items-start gap-3">
                                     <Phone className="mt-0.5 h-5 w-5 shrink-0" />
                                     <div>
-                                        <p>Téléphone</p>
-                                        <p>Téléphone: +44 1245 572 135</p>
+                                        <p>Téléphone:</p>
+                                        <p>+44 1245 572 135</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <Globe className="mt-0.5 h-5 w-5 shrink-0" />
                                     <div>
-                                        <p>Site internet</p>
-                                        <p>www.jakegyll.com</p>
+                                        <p>Site internet:</p>
+                                        <p>www.goriya.com</p>
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +137,7 @@ export default function Page() {
                     </div>
                 </div>
 
-                <div className="pointer-events-none absolute left-0 right-0 top-[468px] hidden border-t-4 border-white/60 md:block" />
+                <div className="pointer-events-none absolute left-0 right-0 top-[440px] hidden border-t-8 border-white/60 md:block" />
             </div>
         </div>
     )
