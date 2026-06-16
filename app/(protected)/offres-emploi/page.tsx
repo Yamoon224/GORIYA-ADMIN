@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
     Briefcase,
     Calendar,
@@ -21,67 +21,85 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AddJobModal } from "@/components/modals/add-job-modal"
+import { jobService } from "@/lib/services/job.service"
+import type { IJobOffer } from "@/lib/@types/entities"
+import { JobStatus } from "@/lib/@types/enums"
 
-const jobRows = [
-    {
-        id: "1",
-        title: "Développeur React Senior",
-        company: "TechCorp Solutions",
-        location: "Paris, France",
-        contract: "CDI",
-        salary: "55k - 70k €",
-        candidates: 42,
-        date: "2024-03-10",
-        status: "Active",
-        statusClass: "bg-[#24bf7e] text-white",
-    },
-    {
-        id: "2",
-        title: "Chef de Projet Marketing Digital",
-        company: "Digital Marketing Pro",
-        location: "Lyon, France",
-        contract: "CDI",
-        salary: "45k - 55k €",
-        candidates: 38,
-        date: "2024-03-12",
-        status: "Active",
-        statusClass: "bg-[#24bf7e] text-white",
-    },
-    {
-        id: "3",
-        title: "Ingénieur DevOps",
-        company: "Green Energy Corp",
-        location: "Toulouse, France",
-        contract: "CDI",
-        salary: "50k - 65k €",
-        candidates: 29,
-        date: "2024-03-08",
-        status: "Urgent",
-        statusClass: "bg-[#ff5a5a] text-white",
-    },
-]
+const STATUS_CLASSES: Record<JobStatus, string> = {
+    [JobStatus.ACTIVE]: "bg-[#24bf7e] text-white",
+    [JobStatus.CLOSED]: "bg-[#ff5a5a] text-white",
+    [JobStatus.DRAFT]: "bg-[#f4f5f8] text-[#4a5162]",
+}
 
-const sectorStats = [
-    { label: "Technologie", value: "2,847", barClass: "bg-[#6366f1]", widthClass: "w-[74px]" },
-    { label: "Marketing", value: "1,923", barClass: "bg-[#6366f1]", widthClass: "w-[46px]" },
-    { label: "Finance", value: "1,456", barClass: "bg-[#27c48f]", widthClass: "w-[40px]" },
-    { label: "Design", value: "987", barClass: "bg-[#ef9435]", widthClass: "w-[26px]" },
-]
+const STATUS_LABELS: Record<JobStatus, string> = {
+    [JobStatus.ACTIVE]: "Active",
+    [JobStatus.CLOSED]: "Fermée",
+    [JobStatus.DRAFT]: "Brouillon",
+}
+
+const BAR_COLORS = ["bg-[#6366f1]", "bg-[#6366f1]", "bg-[#27c48f]", "bg-[#ef9435]", "bg-[#2b78f6]"]
 
 export default function Page() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [jobs, setJobs] = useState<IJobOffer[]>([])
+    const [sectors, setSectors] = useState<Array<{ name: string; count: number; percentage: number }>>([])
+    const [jobStats, setJobStats] = useState<{
+        total: number
+        active: number
+        closed: number
+        draft: number
+        totalApplicants: number
+    } | null>(null)
+    const [loading, setLoading] = useState(true)
+
+    const loadData = async () => {
+        try {
+            const [statsRes, sectorsRes, listRes] = await Promise.all([
+                jobService.getStats(),
+                jobService.getSectorDistribution(),
+                jobService.getJobs({ page: 1, limit: 20 }),
+            ])
+            setJobStats((statsRes as any)?.data ?? statsRes)
+            const sectorsPayload = (sectorsRes as any)?.data ?? sectorsRes
+            setSectors(Array.isArray(sectorsPayload) ? sectorsPayload : [])
+            const items = (listRes as any)?.data ?? listRes
+            setJobs(Array.isArray(items) ? items : [])
+        } catch (err) {
+            console.error("[offres-emploi] load error:", err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadData()
+    }, [])
 
     const filteredJobs = useMemo(() => {
         const normalized = searchTerm.trim().toLowerCase()
-        if (!normalized) {
-            return jobRows
-        }
-
-        return jobRows.filter((job) =>
-            [job.title, job.company, job.location].some((value) => value.toLowerCase().includes(normalized)),
+        if (!normalized) return jobs
+        return jobs.filter((job) =>
+            [job.title, job.company?.name ?? "", job.location].some((v) =>
+                v.toLowerCase().includes(normalized)
+            )
         )
-    }, [searchTerm])
+    }, [searchTerm, jobs])
+
+    const handleAddJob = async () => {
+        setIsAddModalOpen(false)
+        await loadData()
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0f56d9] border-t-transparent" />
+            </div>
+        )
+    }
+
+    const maxSectorCount = Math.max(...sectors.map((s) => s.count), 1)
 
     return (
         <div className="space-y-4">
@@ -103,7 +121,7 @@ export default function Page() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <KpiCard
                     title="Offres Actives"
-                    value="8,456"
+                    value={jobStats ? String(jobStats.active) : "—"}
                     subtitle="Annonces publiées"
                     note="+5% par rapport au mois dernier"
                     borderClass="border-[#f0b475]"
@@ -112,7 +130,7 @@ export default function Page() {
                 />
                 <KpiCard
                     title="Candidatures Totales"
-                    value="34,567"
+                    value={jobStats ? jobStats.totalApplicants.toLocaleString("fr-FR") : "—"}
                     subtitle="Ce mois"
                     note="+18% par rapport au mois dernier"
                     borderClass="border-[#a777ff]"
@@ -120,18 +138,18 @@ export default function Page() {
                     icon={Users}
                 />
                 <KpiCard
-                    title="Taux de Match IA"
-                    value="87%"
-                    subtitle="Correspondances réussies"
+                    title="Total Offres"
+                    value={jobStats ? jobStats.total.toLocaleString("fr-FR") : "—"}
+                    subtitle="Toutes catégories"
                     note="+12% par rapport au mois dernier"
                     borderClass="border-[#55d5ac]"
                     iconClass="bg-[#2db77f]"
                     icon={TrendingUp}
                 />
                 <KpiCard
-                    title="Nouvelles Entreprises"
-                    value="127"
-                    subtitle="Recruteurs ce mois"
+                    title="Brouillons"
+                    value={jobStats ? String(jobStats.draft) : "—"}
+                    subtitle="En attente de publication"
                     note="+8% par rapport au mois dernier"
                     borderClass="border-[#d9dce6]"
                     iconClass="bg-[#4a89ef]"
@@ -173,52 +191,58 @@ export default function Page() {
                 <CardContent className="px-4 py-4">
                     <h2 className="mb-4 text-[24px] font-semibold text-[#242a38]">Liste des Offres d'Emploi</h2>
 
-                    <div className="space-y-3">
-                        {filteredJobs.map((job) => (
-                            <div
-                                key={job.id}
-                                className="flex flex-col gap-3 rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3 lg:flex-row lg:items-center lg:justify-between"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-white">
-                                        <Briefcase className="h-4 w-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[12px] font-medium text-[#252c3b]">{job.title}</p>
-                                        <p className="text-[11px] text-[#7f8797]">{job.company}</p>
-                                        <div className="mt-1 flex items-center gap-2 text-[10px] text-[#8a92a3]">
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
-                                                {job.location}
-                                            </span>
-                                            <Badge className="rounded-full border-0 bg-[#f1f3f7] px-2 py-0.5 text-[10px] text-[#202737]">
-                                                {job.contract}
-                                            </Badge>
-                                            <span className="text-[#24b36f]">{job.salary}</span>
+                    {filteredJobs.length === 0 ? (
+                        <p className="text-center text-[13px] text-[#8a92a3] py-6">Aucune offre trouvée.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {filteredJobs.map((job) => (
+                                <div
+                                    key={job.id}
+                                    className="flex flex-col gap-3 rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-white">
+                                            <Briefcase className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[12px] font-medium text-[#252c3b]">{job.title}</p>
+                                            <p className="text-[11px] text-[#7f8797]">{job.company?.name ?? "—"}</p>
+                                            <div className="mt-1 flex items-center gap-2 text-[10px] text-[#8a92a3]">
+                                                <span className="flex items-center gap-1">
+                                                    <MapPin className="h-3 w-3" />
+                                                    {job.location}
+                                                </span>
+                                                <Badge className="rounded-full border-0 bg-[#f1f3f7] px-2 py-0.5 text-[10px] text-[#202737]">
+                                                    {job.type}
+                                                </Badge>
+                                                <span className="text-[#24b36f]">{job.salary}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-                                    <div className="text-right">
-                                        <p className="text-[13px] font-semibold text-[#2b78f6]">{job.candidates}</p>
-                                        <p className="text-[10px] text-[#8a92a3]">Candidatures</p>
+                                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+                                        <div className="text-right">
+                                            <p className="text-[13px] font-semibold text-[#2b78f6]">{job.applicants}</p>
+                                            <p className="text-[10px] text-[#8a92a3]">Candidatures</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[11px] text-[#4a5162]">
+                                                {new Date(job.publishDate).toLocaleDateString("fr-FR")}
+                                            </p>
+                                            <p className="text-[10px] text-[#8a92a3]">Publié le</p>
+                                        </div>
+                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${STATUS_CLASSES[job.status] ?? ""}`}>
+                                            {STATUS_LABELS[job.status] ?? job.status}
+                                        </Badge>
+                                        <Button variant="outline" className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]">
+                                            <Eye className="h-3.5 w-3.5" />
+                                            Voir Détails
+                                        </Button>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-[11px] text-[#4a5162]">{job.date}</p>
-                                        <p className="text-[10px] text-[#8a92a3]">Publié le</p>
-                                    </div>
-                                    <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${job.statusClass}`}>
-                                        {job.status}
-                                    </Badge>
-                                    <Button variant="outline" className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]">
-                                        <Eye className="h-3.5 w-3.5" />
-                                        Voir Détails
-                                    </Button>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -226,17 +250,24 @@ export default function Page() {
                 <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
                     <CardContent className="px-4 py-4">
                         <h2 className="mb-4 text-[24px] font-semibold text-[#242a38]">Statistiques par Secteur</h2>
-                        <div className="space-y-3">
-                            {sectorStats.map((item) => (
-                                <div key={item.label} className="flex items-center justify-between gap-4">
-                                    <span className="w-28 text-[12px] text-[#2a3140]">{item.label}</span>
-                                    <div className="flex flex-1 items-center justify-end gap-3">
-                                        <div className={`h-1.5 rounded-full ${item.barClass} ${item.widthClass}`} />
-                                        <span className="w-10 text-right text-[11px] text-[#6c7588]">{item.value}</span>
+                        {sectors.length === 0 ? (
+                            <p className="text-[12px] text-[#8a92a3]">Aucune donnée disponible.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {sectors.slice(0, 6).map((item, i) => (
+                                    <div key={item.name} className="flex items-center justify-between gap-4">
+                                        <span className="w-28 text-[12px] text-[#2a3140]">{item.name}</span>
+                                        <div className="flex flex-1 items-center justify-end gap-3">
+                                            <div
+                                                className={`h-1.5 rounded-full ${BAR_COLORS[i % BAR_COLORS.length]}`}
+                                                style={{ width: `${Math.round((item.count / maxSectorCount) * 80)}px` }}
+                                            />
+                                            <span className="w-10 text-right text-[11px] text-[#6c7588]">{item.count}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -246,7 +277,7 @@ export default function Page() {
                         <div className="space-y-2">
                             {[
                                 "Créer une Nouvelle Offre",
-                                "Offres Expirantes (23)",
+                                "Offres Expirantes",
                                 "Rapport de Performance",
                                 "Gérer les Candidatures",
                             ].map((label) => (
@@ -275,7 +306,7 @@ export default function Page() {
                         <div>
                             <p className="text-[13px] font-semibold text-[#f0a04b]">Offres Urgentes</p>
                             <p className="mt-1 text-[11px] text-[#8a7b69]">
-                                23 offres d'emploi expirent dans les 7 prochains jours. Contactez les entreprises pour renouveler ou prolonger.
+                                {jobStats?.closed ?? 0} offres fermées. Contactez les entreprises pour renouveler ou prolonger.
                             </p>
                             <Button variant="outline" className="mt-2 h-7 rounded-full border-[#f0c28e] bg-white px-3 text-[10px] text-[#cb7b1b] hover:bg-[#fff5e8]">
                                 Voir les Offres Expirantes
@@ -285,7 +316,7 @@ export default function Page() {
                 </CardContent>
             </Card>
 
-            <AddJobModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSubmit={() => setIsAddModalOpen(false)} />
+            <AddJobModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSubmit={handleAddJob} />
         </div>
     )
 }

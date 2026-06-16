@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,95 +8,84 @@ import { Progress } from "@/components/ui/progress"
 import {
     Brain,
     TrendingUp,
-    Target,
     Heart,
     Zap,
     Users,
     Activity,
-    Eye,
 } from "lucide-react"
+import { matchingService } from "@/lib/services/matching.service"
+import type { IMatchingResult } from "@/lib/@types/entities"
 
-const stats = [
-    { title: "Matchings Aujourd'hui", value: "127", icon: Users },
-    { title: "Score Moyen", value: "86.7%", icon: Brain },
-    { title: "Taux de Réussite", value: "73.4%", icon: TrendingUp },
-    { title: "Matches Parfaits", value: "45", icon: Heart },
-]
-
-const criteria = [
-    { label: "Compétences techniques", weight: 35 },
-    { label: "Expérience", weight: 30 },
-    { label: "Culture d'entreprise", weight: 20 },
-    { label: "Localisation", weight: 15 },
-]
-
-const perfBars = [
-    { label: "Précision", value: 91.2 },
-    { label: "Vitesse", value: 94.8 },
-]
-
-const sectors = [
-    { label: "Développement", matches: 342, score: 89.2 },
-    { label: "Design", matches: 156, score: 85.7 },
-    { label: "Marketing", matches: 98, score: 82.4 },
-    { label: "Data Science", matches: 87, score: 91.1 },
-]
-
-const matches = [
-    {
-        candidateInitials: "SD",
-        candidate: "Sophie Dubois",
-        candidateRole: "Candidat",
-        companyInitials: "TC",
-        company: "TechCorp",
-        position: "Développeur React Senior",
-        metrics: [
-            { label: "Compétences", value: "96%" },
-            { label: "Expérience", value: "92%" },
-            { label: "Culture", value: "94%" },
-            { label: "Localisation", value: "98%" },
-        ],
-        tag: "Match Parfait",
-        tagClass: "bg-[#2f80ed] text-white",
-        score: "94%",
-    },
-    {
-        candidateInitials: "ML",
-        candidate: "Marc Leblanc",
-        candidateRole: "Candidat",
-        companyInitials: "IS",
-        company: "InvoSoft",
-        position: "Data Scientist",
-        metrics: [
-            { label: "Compétences", value: "89%" },
-            { label: "Expérience", value: "85%" },
-            { label: "Culture", value: "88%" },
-            { label: "Localisation", value: "86%" },
-        ],
-        tag: "Très Compatible",
-        tagClass: "bg-[#2f80ed] text-white",
-        score: "87%",
-    },
-    {
-        candidateInitials: "AM",
-        candidate: "Alice Martin",
-        candidateRole: "Candidat",
-        companyInitials: "DH",
-        company: "DesignHub",
-        position: "UX Designer Lead",
-        metrics: [
-            { label: "Compétences", value: "94%" },
-            { label: "Expérience", value: "88%" },
-            { label: "Culture", value: "92%" },
-            { label: "Localisation", value: "90%" },
-        ],
-        tag: "Excellente Compatibilité",
-        tagClass: "bg-[#2f80ed] text-white",
-        score: "91%",
-    },
-]
+function getInitials(name: string) {
+    return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+}
 
 export default function Page() {
+    const [matchingStats, setMatchingStats] = useState<{
+        totalMatches: number
+        averageScore: number
+        successRate: number
+        pendingMatches: number
+    } | null>(null)
+    const [algorithmPerf, setAlgorithmPerf] = useState<{
+        precision: number
+        recall: number
+        f1Score: number
+        algorithms: Array<{ name: string; accuracy: number }>
+    } | null>(null)
+    const [recentMatches, setRecentMatches] = useState<IMatchingResult[]>([])
+    const [activityFeed, setActivityFeed] = useState<Array<{ id: string; type: string; message: string; timestamp: string }>>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [statsRes, perfRes, matchesRes, activityRes] = await Promise.all([
+                    matchingService.getStats(),
+                    matchingService.getAlgorithmPerformance(),
+                    matchingService.getRecentMatches({ limit: 5 }),
+                    matchingService.getActivityFeed(),
+                ])
+                setMatchingStats((statsRes as any)?.data ?? statsRes)
+                setAlgorithmPerf((perfRes as any)?.data ?? perfRes)
+                const matchItems = (matchesRes as any)?.data ?? matchesRes
+                setRecentMatches(Array.isArray(matchItems) ? matchItems : [])
+                const actItems = (activityRes as any)?.data ?? activityRes
+                setActivityFeed(Array.isArray(actItems) ? actItems : [])
+            } catch (err) {
+                console.error("[matching-ai] load error:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        load()
+    }, [])
+
+    const stats = [
+        { title: "Matchings Aujourd'hui", value: matchingStats ? String(matchingStats.totalMatches) : "—", icon: Users },
+        { title: "Score Moyen", value: matchingStats ? `${matchingStats.averageScore}%` : "—", icon: Brain },
+        { title: "Taux de Réussite", value: matchingStats ? `${matchingStats.successRate}%` : "—", icon: TrendingUp },
+        { title: "En Attente", value: matchingStats ? String(matchingStats.pendingMatches) : "—", icon: Heart },
+    ]
+
+    const perfBars = algorithmPerf
+        ? [
+            { label: "Précision", value: algorithmPerf.precision },
+            { label: "Rappel", value: algorithmPerf.recall },
+          ]
+        : [
+            { label: "Précision", value: 91.2 },
+            { label: "Vitesse", value: 94.8 },
+          ]
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0f56d9] border-t-transparent" />
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-4">
             <div>
@@ -129,18 +119,6 @@ export default function Page() {
                             Algorithme IA
                         </h2>
 
-                        <div>
-                            <p className="text-[12px] font-medium text-[#4a5162]">Critères de Matching</p>
-                            <div className="mt-2 space-y-1.5">
-                                {criteria.map((criterion) => (
-                                    <div key={criterion.label} className="flex items-center justify-between text-[11px] text-[#4a5162]">
-                                        <span>{criterion.label}</span>
-                                        <span>{criterion.weight}%</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
                         <div className="mt-5">
                             <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Performance</p>
                             <div className="space-y-2">
@@ -165,22 +143,23 @@ export default function Page() {
                     <CardContent className="px-4 py-4">
                         <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
                             <TrendingUp className="h-4 w-4" />
-                            Secteurs Performants
+                            Algorithmes Disponibles
                         </h2>
 
                         <div className="space-y-2">
-                            {sectors.map((sector) => (
-                                <div key={sector.label} className="rounded-lg border border-[#ebeff6] bg-[#f8f9fc] px-3 py-2">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-[12px] font-medium text-[#2f3647]">{sector.label}</p>
-                                        <p className="text-[13px] font-semibold text-[#4a5162]">{sector.score}</p>
+                            {algorithmPerf?.algorithms?.length ? (
+                                algorithmPerf.algorithms.map((algo) => (
+                                    <div key={algo.name} className="rounded-lg border border-[#ebeff6] bg-[#f8f9fc] px-3 py-2">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[12px] font-medium text-[#2f3647]">{algo.name}</p>
+                                            <p className="text-[13px] font-semibold text-[#4a5162]">{algo.accuracy}%</p>
+                                        </div>
+                                        <p className="mt-1 text-[10px] text-[#8a92a3]">Précision</p>
                                     </div>
-                                    <div className="mt-1 flex items-center justify-between text-[10px] text-[#8a92a3]">
-                                        <span>{sector.matches} matches</span>
-                                        <span>Score moyen</span>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className="text-[12px] text-[#8a92a3]">Aucun algorithme disponible.</p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -189,22 +168,31 @@ export default function Page() {
                     <CardContent className="px-4 py-4">
                         <h2 className="mb-4 flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
                             <Activity className="h-4 w-4" />
-                            Activité Temps Réel
+                            Activité Récente
                         </h2>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between text-[12px]">
-                                <span className="text-[#4a5162]">Candidats actifs</span>
-                                <span className="font-semibold text-[#2f3647]">1,247</span>
-                            </div>
-                            <div className="flex items-center justify-between text-[12px]">
-                                <span className="text-[#4a5162]">Offres ouvertes</span>
-                                <span className="font-semibold text-[#2f3647]">348</span>
-                            </div>
-                            <div className="flex items-center justify-between text-[12px]">
-                                <span className="text-[#4a5162]">Matches en cours</span>
-                                <span className="font-semibold text-[#2f3647]">89</span>
-                            </div>
+                        <div className="space-y-2">
+                            {activityFeed.length > 0 ? (
+                                activityFeed.slice(0, 4).map((item) => (
+                                    <div key={item.id} className="rounded-lg border border-[#e7ebf3] bg-[#f8f9fc] px-3 py-2">
+                                        <p className="text-[11px] text-[#2f3647]">{item.message}</p>
+                                        <p className="mt-1 text-[10px] text-[#8a92a3]">
+                                            {new Date(item.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                                        </p>
+                                    </div>
+                                ))
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between text-[12px]">
+                                        <span className="text-[#4a5162]">Candidats actifs</span>
+                                        <span className="font-semibold text-[#2f3647]">—</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[12px]">
+                                        <span className="text-[#4a5162]">Offres ouvertes</span>
+                                        <span className="font-semibold text-[#2f3647]">—</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         <Button
@@ -222,61 +210,56 @@ export default function Page() {
                 <CardContent className="px-4 py-4">
                     <h2 className="mb-4 text-[28px] font-semibold text-[#242a38]">Matches Récents</h2>
 
-                    <div className="space-y-3">
-                        {matches.map((match) => (
-                            <div key={`${match.candidate}-${match.company}`} className="rounded-[10px] border border-[#e7ebf3] bg-white px-4 py-3">
-                                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
-                                                {match.candidateInitials}
+                    {recentMatches.length === 0 ? (
+                        <p className="text-center text-[13px] text-[#8a92a3] py-6">Aucun match récent.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentMatches.map((match) => (
+                                <div key={match.id} className="rounded-[10px] border border-[#e7ebf3] bg-white px-4 py-3">
+                                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                                    {getInitials(match.candidateName)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[12px] font-medium text-[#252c3b]">{match.candidateName}</p>
+                                                    <p className="text-[10px] text-[#8a92a3]">Candidat</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-[12px] font-medium text-[#252c3b]">{match.candidate}</p>
-                                                <p className="text-[10px] text-[#8a92a3]">{match.candidateRole}</p>
+
+                                            <Heart className="h-4 w-4 text-[#7f8797]" />
+
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                                    {getInitials(match.company)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[12px] font-medium text-[#252c3b]">{match.company}</p>
+                                                    <p className="text-[10px] text-[#8a92a3]">{match.position}</p>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <Heart className="h-4 w-4 text-[#7f8797]" />
-
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
-                                                {match.companyInitials}
-                                            </div>
-                                            <div>
-                                                <p className="text-[12px] font-medium text-[#252c3b]">{match.company}</p>
-                                                <p className="text-[10px] text-[#8a92a3]">{match.position}</p>
-                                            </div>
+                                        <div className="flex items-center gap-3">
+                                            <Badge className="rounded-full border-0 bg-[#2f80ed] px-2 py-0.5 text-[10px] text-white">
+                                                {match.status}
+                                            </Badge>
+                                            <p className="text-[32px] font-semibold leading-none text-[#232a38]">
+                                                {match.matchingScore}%
+                                            </p>
+                                            <Button
+                                                variant="outline"
+                                                className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
+                                            >
+                                                Voir Détails
+                                            </Button>
                                         </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${match.tagClass}`}>
-                                            {match.tag}
-                                        </Badge>
-                                        <Button
-                                            variant="outline"
-                                            className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
-                                        >
-                                            Voir Détails
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-                                    {match.metrics.map((metric) => (
-                                        <div key={metric.label} className="text-center">
-                                            <p className="text-[13px] font-semibold text-[#4a5162]">{metric.value}</p>
-                                            <p className="text-[10px] text-[#8a92a3]">{metric.label}</p>
-                                        </div>
-                                    ))}
-                                    <div className="text-right">
-                                        <p className="text-[32px] font-semibold leading-none text-[#232a38]">{match.score}</p>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

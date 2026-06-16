@@ -43,6 +43,20 @@ export const analyticsService = {
         })
     },
 
+    getMonthlyActivity: async () => {
+        return apiRequest<ApiResponse<Array<{ month: string; cv: number; entretiens: number }>>>({
+            endpoint: "/analytics/monthly-activity",
+            method: "GET",
+        })
+    },
+
+    getUserTypeDistribution: async () => {
+        return apiRequest<ApiResponse<Array<{ name: string; value: number; color: string }>>>({
+            endpoint: "/analytics/user-distribution",
+            method: "GET",
+        })
+    },
+
     exportReport: async (period: string) => {
         return apiRequest<Blob>({
             endpoint: "/analytics/export",

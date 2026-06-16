@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,84 +8,80 @@ import { Progress } from "@/components/ui/progress"
 import {
     Brain,
     Target,
-    Clock3,
     Zap,
     TrendingUp,
     Settings,
     CircleCheck,
     TriangleAlert,
 } from "lucide-react"
-
-const stats = [
-    { label: "Scores Générés", value: "3,247", icon: Brain },
-    { label: "Score Moyen Global", value: "78.4", icon: Target },
-    { label: "Précision IA", value: "94.7%", icon: CircleCheck },
-    { label: "Temps Traitement", value: "1.8s", icon: Zap },
-]
-
-const criteriaRows = [
-    { label: "Compétences Techniques", weight: 30, score: 82 },
-    { label: "Expérience Professionnelle", weight: 25, score: 78 },
-    { label: "Formation & Certifications", weight: 20, score: 88 },
-    { label: "Soft Skills", weight: 15, score: 75 },
-    { label: "Présentation CV", weight: 10, score: 91 },
-]
-
-const bestDomains = [
-    { label: "Développement", value: "86.4" },
-    { label: "Design UX/UI", value: "83.7" },
-    { label: "Data Science", value: "81.2" },
-]
-
-const recentRows = [
-    {
-        name: "Alice Dupont",
-        role: "Développeuse Frontend",
-        score: "94/100",
-        status: "Excellent",
-        statusClass: "bg-[#2f80ed] text-white",
-        details: [
-            { value: "96", label: "Technique" },
-            { value: "89", label: "Expérience" },
-            { value: "98", label: "Formation" },
-            { value: "92", label: "Soft Skills" },
-            { value: "95", label: "Présentation" },
-        ],
-        recommendation: "3 recommandations d'amélioration",
-    },
-    {
-        name: "Marc Leblanc",
-        role: "Data Analyst",
-        score: "76/100",
-        status: "Bon",
-        statusClass: "bg-[#edf0f6] text-[#3d4354]",
-        details: [
-            { value: "78", label: "Technique" },
-            { value: "72", label: "Expérience" },
-            { value: "82", label: "Formation" },
-            { value: "74", label: "Soft Skills" },
-            { value: "78", label: "Présentation" },
-        ],
-        recommendation: "7 recommandations d'amélioration",
-    },
-    {
-        name: "Sarah Martin",
-        role: "Marketing Digital",
-        score: "68/100",
-        status: "Améliorable",
-        statusClass: "bg-[#edf0f6] text-[#3d4354]",
-        details: [
-            { value: "65", label: "Technique" },
-            { value: "58", label: "Expérience" },
-            { value: "75", label: "Formation" },
-            { value: "82", label: "Soft Skills" },
-            { value: "72", label: "Présentation" },
-        ],
-        recommendation: "12 recommandations d'amélioration",
-    },
-]
+import { scoringService, type IScoringCriteria } from "@/lib/services/scoring.service"
+import type { IScoringResult } from "@/lib/@types/entities"
 
 export default function Page() {
+    const [scoringStats, setScoringStats] = useState<{
+        generatedScores: number
+        averageScore: number
+        accuracy: number
+        averageTime: string
+    } | null>(null)
+    const [criteria, setCriteria] = useState<IScoringCriteria[]>([])
+    const [performance, setPerformance] = useState<{
+        precision: number
+        recall: number
+        f1Score: number
+    } | null>(null)
+    const [recentAnalyses, setRecentAnalyses] = useState<IScoringResult[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [statsRes, criteriaRes, perfRes, recentRes] = await Promise.all([
+                    scoringService.getStats(),
+                    scoringService.getScoringCriteria(),
+                    scoringService.getAlgorithmPerformance(),
+                    scoringService.getRecentAnalyses({ limit: 5 }),
+                ])
+                setScoringStats((statsRes as any)?.data ?? statsRes)
+                const crit = (criteriaRes as any)?.data ?? criteriaRes
+                setCriteria(Array.isArray(crit) ? crit : [])
+                setPerformance((perfRes as any)?.data ?? perfRes)
+                const items = (recentRes as any)?.data ?? recentRes
+                setRecentAnalyses(Array.isArray(items) ? items : [])
+            } catch (err) {
+                console.error("[scoring-ai] load error:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        load()
+    }, [])
+
+    const stats = [
+        { label: "Scores Générés", value: scoringStats ? scoringStats.generatedScores.toLocaleString("fr-FR") : "—", icon: Brain },
+        { label: "Score Moyen Global", value: scoringStats ? String(scoringStats.averageScore) : "—", icon: Target },
+        { label: "Précision IA", value: scoringStats ? `${scoringStats.accuracy}%` : "—", icon: CircleCheck },
+        { label: "Temps Traitement", value: scoringStats?.averageTime ?? "—", icon: Zap },
+    ]
+
+    const displayedCriteria = criteria.length > 0
+        ? criteria
+        : [
+            { name: "Compétences Techniques", weight: 30, score: 82, maxScore: 100 },
+            { name: "Expérience Professionnelle", weight: 25, score: 78, maxScore: 100 },
+            { name: "Formation & Certifications", weight: 20, score: 88, maxScore: 100 },
+            { name: "Soft Skills", weight: 15, score: 75, maxScore: 100 },
+            { name: "Présentation CV", weight: 10, score: 91, maxScore: 100 },
+          ]
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0f56d9] border-t-transparent" />
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-4">
             <div>
@@ -119,17 +116,17 @@ export default function Page() {
                         </h2>
 
                         <div className="space-y-3">
-                            {criteriaRows.map((row) => (
-                                <div key={row.label} className="space-y-1">
+                            {displayedCriteria.map((row) => (
+                                <div key={row.name} className="space-y-1">
                                     <div className="flex items-center justify-between text-[12px]">
-                                        <span className="text-[#3f4657]">{row.label}</span>
+                                        <span className="text-[#3f4657]">{row.name}</span>
                                         <div className="flex items-center gap-3 text-[#8b92a3]">
                                             <span>Poids: {row.weight}%</span>
-                                            <span className="text-[#4a5162]">{row.score}/100</span>
+                                            <span className="text-[#4a5162]">{row.score}/{row.maxScore}</span>
                                         </div>
                                     </div>
                                     <Progress
-                                        value={row.score}
+                                        value={(row.score / row.maxScore) * 100}
                                         className="h-2 bg-[#ebeff8] [&_[data-slot=progress-indicator]]:bg-[#3f7fe8]"
                                     />
                                 </div>
@@ -157,30 +154,22 @@ export default function Page() {
                             <div>
                                 <p className="flex items-center gap-1 text-[12px] font-semibold text-[#24b36f]">
                                     <CircleCheck className="h-3.5 w-3.5" />
-                                    Scores Excellents
+                                    Précision
                                 </p>
-                                <p className="mt-1 text-[34px] font-semibold leading-none text-[#232a38]">847</p>
-                                <p className="mt-1 text-[10px] text-[#8a92a3]">+15% ce mois</p>
+                                <p className="mt-1 text-[34px] font-semibold leading-none text-[#232a38]">
+                                    {performance ? `${performance.precision}%` : "—"}
+                                </p>
+                                <p className="mt-1 text-[10px] text-[#8a92a3]">F1 Score: {performance?.f1Score ?? "—"}</p>
                             </div>
                             <div>
                                 <p className="flex items-center gap-1 text-[12px] font-semibold text-[#f0a04b]">
                                     <TriangleAlert className="h-3.5 w-3.5" />
-                                    À Améliorer
+                                    Rappel
                                 </p>
-                                <p className="mt-1 text-[34px] font-semibold leading-none text-[#232a38]">234</p>
-                                <p className="mt-1 text-[10px] text-[#8a92a3]">-8% ce mois</p>
-                            </div>
-                        </div>
-
-                        <div className="mt-5 border-t border-[#eceff6] pt-3">
-                            <p className="mb-2 text-[11px] text-[#8a92a3]">Domaines les mieux scorés</p>
-                            <div className="space-y-2">
-                                {bestDomains.map((domain) => (
-                                    <div key={domain.label} className="flex items-center justify-between text-[12px]">
-                                        <span className="text-[#3f4657]">{domain.label}</span>
-                                        <span className="text-[#4a5162]">{domain.value}</span>
-                                    </div>
-                                ))}
+                                <p className="mt-1 text-[34px] font-semibold leading-none text-[#232a38]">
+                                    {performance ? `${performance.recall}%` : "—"}
+                                </p>
+                                <p className="mt-1 text-[10px] text-[#8a92a3]">Taux de détection</p>
                             </div>
                         </div>
                     </CardContent>
@@ -191,47 +180,44 @@ export default function Page() {
                 <CardContent className="px-4 py-4">
                     <h2 className="mb-4 text-[28px] font-semibold text-[#242a38]">Analyses Récentes</h2>
 
-                    <div className="space-y-3">
-                        {recentRows.map((row) => (
-                            <div key={row.name} className="rounded-[10px] border border-[#e7ebf3] bg-white px-4 py-3">
-                                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                    <div>
-                                        <p className="text-[12px] font-medium text-[#252c3b]">{row.name}</p>
-                                        <p className="text-[11px] text-[#7f8797]">{row.role}</p>
+                    {recentAnalyses.length === 0 ? (
+                        <p className="text-center text-[13px] text-[#8a92a3] py-6">Aucune analyse récente.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {recentAnalyses.map((row) => (
+                                <div key={row.id} className="rounded-[10px] border border-[#e7ebf3] bg-white px-4 py-3">
+                                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                        <div>
+                                            <p className="text-[12px] font-medium text-[#252c3b]">{row.candidateName}</p>
+                                            <p className="text-[11px] text-[#7f8797]">{row.position}</p>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <p className="text-[31px] font-semibold text-[#232a38]">{row.overallScore}/100</p>
+                                            <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${row.status === "COMPLETED" ? "bg-[#2f80ed] text-white" : "bg-[#edf0f6] text-[#3d4354]"}`}>
+                                                {row.status === "COMPLETED" ? "Terminé" : "En cours"}
+                                            </Badge>
+                                            <Button
+                                                variant="outline"
+                                                className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
+                                            >
+                                                Voir Détail
+                                            </Button>
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center gap-3">
-                                        <p className="text-[31px] font-semibold text-[#232a38]">{row.score}</p>
-                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${row.statusClass}`}>
-                                            {row.status}
-                                        </Badge>
-                                        <Button
-                                            variant="outline"
-                                            className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
-                                        >
-                                            Voir Détail
+                                    <div className="mt-3 flex items-center justify-between border-t border-[#edf0f6] pt-2">
+                                        <p className="text-[10px] text-[#8a92a3]">
+                                            Analysé le {new Date(row.analysisDate).toLocaleDateString("fr-FR")}
+                                        </p>
+                                        <Button variant="ghost" className="h-7 rounded-md px-2 text-[11px] text-[#4d5567] hover:bg-[#f5f7fc]">
+                                            Générer Rapport
                                         </Button>
                                     </div>
                                 </div>
-
-                                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
-                                    {row.details.map((detail) => (
-                                        <div key={detail.label} className="text-center">
-                                            <p className="text-[13px] font-semibold text-[#4a5162]">{detail.value}</p>
-                                            <p className="text-[10px] text-[#8a92a3]">{detail.label}</p>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-3 flex items-center justify-between border-t border-[#edf0f6] pt-2">
-                                    <p className="text-[10px] text-[#8a92a3]">{row.recommendation}</p>
-                                    <Button variant="ghost" className="h-7 rounded-md px-2 text-[11px] text-[#4d5567] hover:bg-[#f5f7fc]">
-                                        Générer Rapport
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

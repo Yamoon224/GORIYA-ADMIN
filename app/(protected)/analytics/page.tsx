@@ -19,7 +19,7 @@ import {
     Tooltip,
 } from "recharts"
 
-const evolutionData = [
+const FALLBACK_EVOLUTION = [
     { month: "Jan", value: 1120 },
     { month: "Fev", value: 1560 },
     { month: "Mar", value: 1860 },
@@ -28,13 +28,13 @@ const evolutionData = [
     { month: "Juin", value: 2680 },
 ]
 
-const activityData = [
+const FALLBACK_ACTIVITY = [
     { name: "CV analyses", value: 36, color: "#f59e0b" },
     { name: "Entretiens", value: 40, color: "#2f80ed" },
     { name: "Matchings", value: 24, color: "#34a853" },
 ]
 
-const monthlyActivity = [
+const FALLBACK_MONTHLY_ACTIVITY = [
     { month: "Jan", cv: 11000, entretiens: 4000 },
     { month: "Fev", cv: 15000, entretiens: 5000 },
     { month: "Mar", cv: 18000, entretiens: 6000 },
@@ -43,7 +43,7 @@ const monthlyActivity = [
     { month: "Juin", cv: 0, entretiens: 9600 },
 ]
 
-const userDistribution = [
+const FALLBACK_USER_DISTRIBUTION = [
     { name: "Etudiants", value: 65, color: "#3f7fe8" },
     { name: "Professionnels", value: 25, color: "#27ae60" },
     { name: "Diplomes", value: 10, color: "#7b61ff" },
@@ -63,12 +63,22 @@ export default function Page() {
         matchingRate: 78.6,
         averageAnalysisTime: "2.4min",
     })
+    const [evolutionData, setEvolutionData] = useState(FALLBACK_EVOLUTION)
+    const [activityData, setActivityData] = useState(FALLBACK_ACTIVITY)
+    const [monthlyActivity, setMonthlyActivity] = useState(FALLBACK_MONTHLY_ACTIVITY)
+    const [userDistribution, setUserDistribution] = useState(FALLBACK_USER_DISTRIBUTION)
 
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
-                const data = await analyticsService.getAnalytics()
-                const payload = (data as any)?.data ?? (data as any)
+                const [mainData, evolutionRes, activityRes, monthlyRes, userDistRes] = await Promise.all([
+                    analyticsService.getAnalytics(),
+                    analyticsService.getEvolutionData("month"),
+                    analyticsService.getActivityDistribution(),
+                    analyticsService.getMonthlyActivity().catch(() => null),
+                    analyticsService.getUserTypeDistribution().catch(() => null),
+                ])
+                const payload = (mainData as any)?.data ?? (mainData as any)
                 if (payload?.analyzedCVs !== undefined) {
                     setAnalytics({
                         analyzedCVs: payload.analyzedCVs,
@@ -77,6 +87,14 @@ export default function Page() {
                         averageAnalysisTime: payload.averageAnalysisTime,
                     })
                 }
+                const evo = (evolutionRes as any)?.data ?? evolutionRes
+                if (Array.isArray(evo) && evo.length > 0) setEvolutionData(evo)
+                const act = (activityRes as any)?.data ?? activityRes
+                if (Array.isArray(act) && act.length > 0) setActivityData(act)
+                const monthly = (monthlyRes as any)?.data ?? monthlyRes
+                if (Array.isArray(monthly) && monthly.length > 0) setMonthlyActivity(monthly)
+                const userDist = (userDistRes as any)?.data ?? userDistRes
+                if (Array.isArray(userDist) && userDist.length > 0) setUserDistribution(userDist)
             } catch (error) {
                 console.error("Error fetching analytics:", error)
             }
@@ -203,19 +221,22 @@ export default function Page() {
                         <CardTitle className="text-[33px] font-semibold text-[#242a38]">Repartition des Utilisateurs</CardTitle>
                     </CardHeader>
                     <CardContent className="px-4 pb-5">
-                        <div className="relative h-[300px] w-full">
+                        <div className="h-[260px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
-                                    <Pie data={userDistribution} cx="50%" cy="55%" outerRadius={68} dataKey="value" stroke="none">
+                                    <Pie data={userDistribution} cx="50%" cy="52%" outerRadius={68} dataKey="value" stroke="none">
                                         {userDistribution.map((entry) => (
                                             <Cell key={entry.name} fill={entry.color} />
                                         ))}
                                     </Pie>
+                                    <Tooltip formatter={(value: number, name: string) => [`${value}%`, name]} />
                                 </PieChart>
                             </ResponsiveContainer>
-                            <p className="absolute left-[20%] top-[12%] text-[11px] text-[#3f7fe8]">Etudiants: 65%</p>
-                            <p className="absolute left-[56%] top-[43%] text-[11px] text-[#7b61ff]">Diplomes 10%</p>
-                            <p className="absolute left-[44%] top-[62%] text-[11px] text-[#27ae60]">Professionnels: 25%</p>
+                        </div>
+                        <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-[11px] text-[#1f2533]">
+                            {userDistribution.map((entry) => (
+                                <LegendDot key={entry.name} color={entry.color} label={`${entry.name}: ${entry.value}%`} />
+                            ))}
                         </div>
                     </CardContent>
                 </Card>

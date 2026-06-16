@@ -29,59 +29,13 @@ export default function Page() {
 
     const loadData = async () => {
         try {
-            // Données de démonstration
-            setStats({
-                totalUsers: 2847,
-                enterprises: 186,
-                activeUsers: 2654,
-                newUsers: 193,
-            })
-
-            setUsers([
-                {
-                    id: "1",
-                    name: "Sophie Martin",
-                    email: "sophie.martin@email.com",
-                    role: "admin",
-                    status: "active",
-                    registrationDate: "2024-01-15",
-                    lastLogin: "2024-01-16T10:30:00Z",
-                    references: "Super CV 95/100",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                },
-                {
-                    id: "2",
-                    name: "Marc Dubois",
-                    email: "marc.dubois@techcorp.com",
-                    role: "enterprise",
-                    status: "active",
-                    registrationDate: "2024-01-01",
-                    lastLogin: "2024-01-16T09:15:00Z",
-                    references: "12 offres",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                },
-                {
-                    id: "3",
-                    name: "Julie Durand",
-                    email: "julie.durand@email.com",
-                    role: "user",
-                    status: "inactive",
-                    registrationDate: "2024-01-22",
-                    references: "Score CV 72/100",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                },
-                {
-                    id: "4",
-                    name: "Vincent SARL",
-                    email: "contact@vincent-sarl.com",
-                    role: "enterprise",
-                    status: "active",
-                    registrationDate: "2024-03-10",
-                    lastLogin: "2024-01-15T16:45:00Z",
-                    references: "8 offres",
-                    avatar: "/placeholder.svg?height=40&width=40",
-                },
+            const [statsRes, usersRes] = await Promise.all([
+                userService.getUserStats(),
+                userService.getUsers({ page: 1, limit: 50 }),
             ])
+            setStats((statsRes as any)?.data ?? statsRes)
+            const items = (usersRes as any)?.data ?? usersRes
+            setUsers(Array.isArray(items) ? items : [])
         } catch (error) {
             console.error("Erreur lors du chargement:", error)
         } finally {
@@ -89,10 +43,10 @@ export default function Page() {
         }
     }
 
-    const handleStatusChange = async (userId: string, newStatus: "active" | "inactive") => {
+    const handleStatusChange = async (userId: string, newStatus: "ACTIVE" | "INACTIVE") => {
         try {
             await userService.updateUserStatus(userId, newStatus as any)
-            setUsers(users.map((user) => (user.id === userId ? { ...user, status: newStatus } : user)))
+            setUsers(users.map((user) => (user.id === userId ? { ...user, status: newStatus as any } : user)))
         } catch (error) {
             console.error("Erreur lors de la mise à jour:", error)
         }
@@ -102,7 +56,11 @@ export default function Page() {
         const matchesSearch =
             user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.email.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesRole = roleFilter === "all" || user.role === roleFilter
+        const matchesRole =
+            roleFilter === "all" ||
+            (roleFilter === "admin" && user.role === "ADMIN") ||
+            (roleFilter === "user" && user.role === "USER") ||
+            (roleFilter === "enterprise" && user.role === "ENTREPRISE")
         return matchesSearch && matchesRole
     })
 
@@ -254,47 +212,42 @@ export default function Page() {
                                         <td className="py-4 px-4">
                                             <Badge
                                                 variant={
-                                                    user.role === "admin" ? "default" : user.role === "enterprise" ? "secondary" : "outline"
+                                                    user.role === "ADMIN" ? "default" : user.role === "ENTREPRISE" ? "secondary" : "outline"
                                                 }
                                             >
-                                                {user.role === "admin"
+                                                {user.role === "ADMIN"
                                                     ? "Administrateur"
-                                                    : user.role === "enterprise"
+                                                    : user.role === "ENTREPRISE"
                                                         ? "Entreprise"
                                                         : "Utilisateur"}
                                             </Badge>
                                         </td>
                                         <td className="py-4 px-4">
                                             <Badge
-                                                variant={user.status === "active" ? "default" : "secondary"}
+                                                variant={user.status === "ACTIVE" ? "default" : "secondary"}
                                                 className={
-                                                    user.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                                                    user.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                                                 }
                                             >
-                                                {user.status === "active" ? "Actif" : "Inactif"}
+                                                {user.status === "ACTIVE" ? "Actif" : "Inactif"}
                                             </Badge>
                                         </td>
                                         <td className="py-4 px-4">
-                                            <div>
-                                                <p className="text-sm">{new Date(user.registrationDate).toLocaleDateString("fr-FR")}</p>
-                                                {user.lastLogin && (
-                                                    <p className="text-xs text-gray-500">
-                                                        Dernière connexion: {new Date(user.lastLogin).toLocaleDateString("fr-FR")}
-                                                    </p>
-                                                )}
-                                            </div>
+                                            <p className="text-sm">
+                                                {new Date(user.registrationDate).toLocaleDateString("fr-FR")}
+                                            </p>
                                         </td>
                                         <td className="py-4 px-4">
-                                            <p className="text-sm">{user.references}</p>
+                                            <p className="text-sm text-gray-400">—</p>
                                         </td>
                                         <td className="py-4 px-4">
                                             <div className="flex items-center gap-2">
-                                                {user.status === "active" ? (
-                                                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, "inactive")}>
+                                                {user.status === "ACTIVE" ? (
+                                                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, "INACTIVE")}>
                                                         <UserX className="w-4 h-4" />
                                                     </Button>
                                                 ) : (
-                                                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, "active")}>
+                                                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, "ACTIVE")}>
                                                         <UserCheck className="w-4 h-4" />
                                                     </Button>
                                                 )}

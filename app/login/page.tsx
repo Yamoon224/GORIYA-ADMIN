@@ -27,8 +27,14 @@ export default function Page() {
         try {
             const response = await authService.login(credentials)
 
+            if ((response.user as any)?.role !== "ADMIN") {
+                toast.error("Accès refusé. Cette interface est réservée aux administrateurs.")
+                return
+            }
+
             localStorage.setItem("goriya_token", response.access_token)
             localStorage.setItem("goriya_user", JSON.stringify(response.user))
+            document.cookie = `goriya_token=${response.access_token}; path=/; max-age=3600; samesite=lax`
 
             toast.success("Connexion réussie")
             router.push("/dashboard")

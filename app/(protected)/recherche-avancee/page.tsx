@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +17,8 @@ import {
     Briefcase,
     Star,
 } from "lucide-react"
+import { searchService, type ISearchFilters } from "@/lib/services/search.service"
+import type { IUser, IJobOffer } from "@/lib/@types/entities"
 
 type ResultItem = {
     id: string
@@ -29,69 +31,43 @@ type ResultItem = {
     metaTwo: string
     tags: string[]
     score?: string
-    scoreBadge?: string
     actionLabel: string
     actionSubLabel?: string
 }
 
-const quickTags = ["Développeurs", "Designers", "Data Scientists", "Marketing", "Remote"]
+function toResultItem(raw: IUser | IJobOffer): ResultItem {
+    if ("email" in raw) {
+        const u = raw as IUser
+        return {
+            id: u.id,
+            kind: "candidate",
+            initials: u.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2),
+            title: u.name,
+            subtitle: "Candidat",
+            location: u.company?.location ?? "—",
+            metaOne: "—",
+            metaTwo: new Date(u.registrationDate).toLocaleDateString("fr-FR"),
+            tags: [],
+            actionLabel: "Voir Profil",
+        }
+    }
+    const j = raw as IJobOffer
+    return {
+        id: j.id,
+        kind: "offer",
+        initials: (j.company?.name ?? "??").slice(0, 2).toUpperCase(),
+        title: j.title,
+        subtitle: j.company?.name ?? "—",
+        location: j.location ?? "—",
+        metaOne: j.salary ?? "—",
+        metaTwo: new Date(j.publishDate).toLocaleDateString("fr-FR"),
+        tags: [],
+        actionLabel: "Voir Offre",
+        actionSubLabel: `${j.applicants ?? 0} candidature${j.applicants !== 1 ? "s" : ""}`,
+    }
+}
 
-const mockResults: ResultItem[] = [
-    {
-        id: "1",
-        kind: "candidate",
-        initials: "SM",
-        title: "Sophie Martin",
-        subtitle: "Développeuse React Senior",
-        location: "Abidjan Cocody",
-        metaOne: "5+ ans",
-        metaTwo: "Disponible immédiatement",
-        tags: ["React", "TypeScript", "Node.js", "AWS"],
-        score: "94/100",
-        scoreBadge: "Candidat",
-        actionLabel: "Voir Profil",
-    },
-    {
-        id: "2",
-        kind: "offer",
-        initials: "TC",
-        title: "Full Stack Developer",
-        subtitle: "TechCorp",
-        location: "Abidjan Cocody",
-        metaOne: "350 000 F",
-        metaTwo: "Il y a 2 jours",
-        tags: ["JavaScript", "Python", "MongoDB", "Docker"],
-        actionLabel: "Voir Offre",
-        actionSubLabel: "23 candidatures",
-    },
-    {
-        id: "3",
-        kind: "candidate",
-        initials: "ML",
-        title: "Marc Leblanc",
-        subtitle: "Data Scientist",
-        location: "Abidjan Cocody",
-        metaOne: "3+ ans",
-        metaTwo: "Disponible en mars",
-        tags: ["Python", "Machine Learning", "SQL", "Tableau"],
-        score: "87/100",
-        scoreBadge: "Candidat",
-        actionLabel: "Voir Profil",
-    },
-    {
-        id: "4",
-        kind: "offer",
-        initials: "IS",
-        title: "UX Designer",
-        subtitle: "InnoSoft",
-        location: "Abidjan Cocody",
-        metaOne: "350 000 F",
-        metaTwo: "Il y a 1 semaine",
-        tags: ["Figma", "Adobe Creative", "User Research", "Prototyping"],
-        actionLabel: "Voir Offre",
-        actionSubLabel: "18 candidatures",
-    },
-]
+const quickTags = ["Développeurs", "Designers", "Data Scientists", "Marketing", "Remote"]
 
 export default function Page() {
     const [query, setQuery] = useState("")
@@ -99,20 +75,77 @@ export default function Page() {
     const [includeOffers, setIncludeOffers] = useState(true)
     const [experience, setExperience] = useState([2])
     const [minScore, setMinScore] = useState([70])
+    const [location, setLocation] = useState("all")
+    const [sector, setSector] = useState("all")
+    const [results, setResults] = useState<ResultItem[]>([])
+    const [totalCount, setTotalCount] = useState(0)
+    const [availableLocations, setAvailableLocations] = useState<string[]>([])
+    const [availableSectors, setAvailableSectors] = useState<string[]>([])
+    const [searched, setSearched] = useState(false)
+    const [searching, setSearching] = useState(false)
+
+    useEffect(() => {
+        searchService.getAdvancedFilters()
+            .then((res) => {
+                const f = (res as any)?.data ?? res
+                setAvailableLocations(f?.locations ?? [])
+                setAvailableSectors(f?.sectors ?? [])
+            })
+            .catch(() => { /* ignore */ })
+    }, [])
+
+    const handleSearch = async () => {
+        setSearching(true)
+        setSearched(true)
+        try {
+            const filters: ISearchFilters = {
+                location: location !== "all" ? location : undefined,
+                sector: sector !== "all" ? sector : undefined,
+                experience: `${experience[0]}`,
+                minScore: minScore[0],
+                page: 1,
+                limit: 20,
+            }
+            const type = includeCandidates && includeOffers ? "all" : includeCandidates ? "candidate" : "offer"
+            const res = await searchService.search(query, { ...filters, type })
+            const items = (res as any)?.data ?? res ?? []
+            const arr = Array.isArray(items) ? items : []
+            setResults(arr.map(toResultItem))
+            setTotalCount((res as any)?.meta?.total ?? arr.length)
+        } catch (err) {
+            console.error("[recherche] search error:", err)
+            setResults([])
+        } finally {
+            setSearching(false)
+        }
+    }
+
+    const handleExport = async () => {
+        try {
+            const filters: ISearchFilters = {
+                location: location !== "all" ? location : undefined,
+                sector: sector !== "all" ? sector : undefined,
+                type: includeCandidates && includeOffers ? "all" : includeCandidates ? "candidate" : "offer",
+            }
+            const res = await searchService.exportResults(query, filters)
+            const blob = new Blob([res as any], { type: "text/csv" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = "resultats-recherche.csv"
+            a.click()
+            URL.revokeObjectURL(url)
+        } catch (err) {
+            console.error("[recherche] export error:", err)
+        }
+    }
 
     const filteredResults = useMemo(() => {
-        const q = query.trim().toLowerCase()
-        return mockResults.filter((item) => {
+        return results.filter((item) => {
             const includeKind = (item.kind === "candidate" && includeCandidates) || (item.kind === "offer" && includeOffers)
-            const matches =
-                !q ||
-                [item.title, item.subtitle, item.location, ...item.tags]
-                    .join(" ")
-                    .toLowerCase()
-                    .includes(q)
-            return includeKind && matches
+            return includeKind
         })
-    }, [query, includeCandidates, includeOffers])
+    }, [results, includeCandidates, includeOffers])
 
     return (
         <div className="space-y-4">
@@ -124,7 +157,10 @@ export default function Page() {
                     </p>
                 </div>
 
-                <Button className="mt-1 h-9 rounded-full bg-[#0f56d9] px-5 text-[12px] font-semibold text-white hover:bg-[#0a4cc5]">
+                <Button
+                    className="mt-1 h-9 rounded-full bg-[#0f56d9] px-5 text-[12px] font-semibold text-white hover:bg-[#0a4cc5]"
+                    onClick={handleExport}
+                >
                     <Download className="h-3.5 w-3.5" />
                     Exporter Résultats
                 </Button>
@@ -138,19 +174,28 @@ export default function Page() {
                             <Input
                                 value={query}
                                 onChange={(event) => setQuery(event.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                                 placeholder="Rechercher candidats, postes, compétences..."
                                 className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] pl-9 text-[12px] text-[#313847] shadow-none"
                             />
                         </div>
-                        <Button className="h-10 rounded-full bg-[#2f80ed] px-5 text-[12px] font-semibold text-white hover:bg-[#2575e3]">
+                        <Button
+                            className="h-10 rounded-full bg-[#2f80ed] px-5 text-[12px] font-semibold text-white hover:bg-[#2575e3]"
+                            onClick={handleSearch}
+                            disabled={searching}
+                        >
                             <Search className="h-3.5 w-3.5" />
-                            Rechercher
+                            {searching ? "Recherche…" : "Rechercher"}
                         </Button>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
                         {quickTags.map((tag) => (
-                            <Badge key={tag} className="rounded-full border border-[#e7ebf3] bg-white px-2 py-0.5 text-[10px] text-[#3f4657]">
+                            <Badge
+                                key={tag}
+                                className="cursor-pointer rounded-full border border-[#e7ebf3] bg-white px-2 py-0.5 text-[10px] text-[#3f4657]"
+                                onClick={() => { setQuery(tag); }}
+                            >
                                 {tag}
                             </Badge>
                         ))}
@@ -183,20 +228,21 @@ export default function Page() {
 
                             <div>
                                 <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Localisation</p>
-                                <Select defaultValue="abidjan">
+                                <Select value={location} onValueChange={setLocation}>
                                     <SelectTrigger className="h-10 rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567]">
                                         <SelectValue placeholder="Choisir une ville" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="abidjan">Choisir une ville</SelectItem>
-                                        <SelectItem value="cocody">Abidjan Cocody</SelectItem>
-                                        <SelectItem value="plateau">Abidjan Plateau</SelectItem>
+                                        <SelectItem value="all">Toutes les villes</SelectItem>
+                                        {availableLocations.map((loc) => (
+                                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             <div>
-                                <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Années d'expérience</p>
+                                <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Années d'expérience : {experience[0]}</p>
                                 <Slider value={experience} onValueChange={setExperience} max={10} step={1} className="[&_[data-slot=slider-range]]:bg-[#3f7fe8]" />
                                 <div className="mt-1 flex justify-between text-[10px] text-[#8a92a3]">
                                     <span>0 ans</span>
@@ -205,7 +251,7 @@ export default function Page() {
                             </div>
 
                             <div>
-                                <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Score minimum</p>
+                                <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Score minimum : {minScore[0]}</p>
                                 <Slider value={minScore} onValueChange={setMinScore} max={100} step={1} className="[&_[data-slot=slider-range]]:bg-[#3f7fe8]" />
                                 <div className="mt-1 flex justify-between text-[10px] text-[#8a92a3]">
                                     <span>0</span>
@@ -215,20 +261,24 @@ export default function Page() {
 
                             <div>
                                 <p className="mb-2 text-[12px] font-medium text-[#4a5162]">Secteur</p>
-                                <Select defaultValue="all">
+                                <Select value={sector} onValueChange={setSector}>
                                     <SelectTrigger className="h-10 rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567]">
                                         <SelectValue placeholder="Tous secteurs" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Tous secteurs</SelectItem>
-                                        <SelectItem value="tech">Technologie</SelectItem>
-                                        <SelectItem value="marketing">Marketing</SelectItem>
-                                        <SelectItem value="design">Design</SelectItem>
+                                        {availableSectors.map((s) => (
+                                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
-                            <Button variant="outline" className="h-9 w-full rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]">
+                            <Button
+                                variant="outline"
+                                className="h-9 w-full rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567] hover:bg-[#f1f4fa]"
+                                onClick={() => { setQuery(""); setLocation("all"); setSector("all"); setExperience([2]); setMinScore([70]); setResults([]); setSearched(false); }}
+                            >
                                 Réinitialiser Filtres
                             </Button>
                         </div>
@@ -237,7 +287,9 @@ export default function Page() {
 
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <p className="text-[13px] text-[#7f8797]">{filteredResults.length} résultats trouvés</p>
+                        <p className="text-[13px] text-[#7f8797]">
+                            {searched ? `${totalCount} résultat${totalCount !== 1 ? "s" : ""} trouvé${totalCount !== 1 ? "s" : ""}` : "Lancez une recherche"}
+                        </p>
                         <Select defaultValue="pertinent">
                             <SelectTrigger className="h-9 w-[170px] rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567]">
                                 <SelectValue placeholder="Tri" />
@@ -249,76 +301,74 @@ export default function Page() {
                         </Select>
                     </div>
 
-                    {filteredResults.map((item) => (
-                        <Card key={item.id} className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
-                            <CardContent className="px-4 py-4">
-                                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
-                                            {item.initials}
+                    {filteredResults.length === 0 && searched && !searching ? (
+                        <p className="text-center text-[13px] text-[#8a92a3] py-6">Aucun résultat pour cette recherche.</p>
+                    ) : (
+                        filteredResults.map((item) => (
+                            <Card key={item.id} className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
+                                <CardContent className="px-4 py-4">
+                                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                                {item.initials}
+                                            </div>
+                                            <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <p className="text-[16px] font-semibold text-[#232a38]">{item.title}</p>
+                                                    <Badge className="rounded-full border-0 bg-[#e7f0ff] px-2 py-0.5 text-[10px] text-[#2f80ed]">
+                                                        {item.kind === "candidate" ? "Candidat" : "Offre"}
+                                                    </Badge>
+                                                    {item.score ? (
+                                                        <Badge className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]">
+                                                            {item.score}
+                                                        </Badge>
+                                                    ) : null}
+                                                </div>
+                                                <p className="text-[13px] leading-none text-[#7f8797]">{item.subtitle}</p>
+
+                                                <div className="mt-2 flex flex-wrap items-center gap-4 text-[11px] text-[#7f8797]">
+                                                    <span className="flex items-center gap-1">
+                                                        <MapPin className="h-3.5 w-3.5" />
+                                                        {item.location}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        {item.kind === "candidate" ? <Briefcase className="h-3.5 w-3.5" /> : <Star className="h-3.5 w-3.5" />}
+                                                        {item.metaOne}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock3 className="h-3.5 w-3.5" />
+                                                        {item.metaTwo}
+                                                    </span>
+                                                </div>
+
+                                                {item.tags.length > 0 && (
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {item.tags.map((tag) => (
+                                                            <Badge
+                                                                key={tag}
+                                                                className="rounded-full border border-[#e7ebf3] bg-white px-2 py-0.5 text-[10px] text-[#3f4657]"
+                                                            >
+                                                                {tag}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <p className="text-[16px] font-semibold text-[#232a38]">{item.title}</p>
-                                                <Badge className="rounded-full border-0 bg-[#e7f0ff] px-2 py-0.5 text-[10px] text-[#2f80ed]">
-                                                    {item.kind === "candidate" ? "Candidat" : "Offre"}
-                                                </Badge>
-                                                {item.score ? (
-                                                    <Badge className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]">
-                                                        {item.score}
-                                                    </Badge>
-                                                ) : null}
-                                            </div>
-                                            <p className="text-[24px] leading-none text-[#7f8797]">{item.subtitle}</p>
 
-                                            <div className="mt-2 flex flex-wrap items-center gap-4 text-[11px] text-[#7f8797]">
-                                                <span className="flex items-center gap-1">
-                                                    <MapPin className="h-3.5 w-3.5" />
-                                                    {item.location}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    {item.kind === "candidate" ? <Briefcase className="h-3.5 w-3.5" /> : <Star className="h-3.5 w-3.5" />}
-                                                    {item.metaOne}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Clock3 className="h-3.5 w-3.5" />
-                                                    {item.metaTwo}
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                {item.tags.map((tag) => (
-                                                    <Badge
-                                                        key={tag}
-                                                        className="rounded-full border border-[#e7ebf3] bg-white px-2 py-0.5 text-[10px] text-[#3f4657]"
-                                                    >
-                                                        {tag}
-                                                    </Badge>
-                                                ))}
-                                            </div>
+                                        <div className="text-right">
+                                            <Button className="h-9 rounded-full bg-[#2f80ed] px-4 text-[12px] font-semibold text-white hover:bg-[#2575e3]">
+                                                {item.actionLabel}
+                                            </Button>
+                                            {item.actionSubLabel ? (
+                                                <p className="mt-2 text-[11px] text-[#7f8797]">{item.actionSubLabel}</p>
+                                            ) : null}
                                         </div>
                                     </div>
-
-                                    <div className="text-right">
-                                        <Button className="h-9 rounded-full bg-[#2f80ed] px-4 text-[12px] font-semibold text-white hover:bg-[#2575e3]">
-                                            {item.actionLabel}
-                                        </Button>
-                                        {item.actionSubLabel ? (
-                                            <p className="mt-2 text-[11px] text-[#7f8797]">{item.actionSubLabel}</p>
-                                        ) : null}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-
-                    <div className="flex items-center justify-center gap-2 pt-2">
-                        <Button variant="outline" className="h-8 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-3 text-[11px] text-[#4d5567]">Précédent</Button>
-                        <Button className="h-8 rounded-lg bg-[#2f80ed] px-3 text-[11px] text-white hover:bg-[#2575e3]">1</Button>
-                        <Button variant="outline" className="h-8 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-3 text-[11px] text-[#4d5567]">2</Button>
-                        <Button variant="outline" className="h-8 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-3 text-[11px] text-[#4d5567]">3</Button>
-                        <Button variant="outline" className="h-8 rounded-lg border-[#eceff5] bg-[#f8f9fc] px-3 text-[11px] text-[#4d5567]">Suivant</Button>
-                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
                 </div>
             </div>
         </div>

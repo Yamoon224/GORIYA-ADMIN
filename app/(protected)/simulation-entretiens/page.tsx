@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,74 +17,78 @@ import {
     Mic,
     Eye,
 } from "lucide-react"
+import { interviewService } from "@/lib/services/interview.service"
+import type { IInterviewSession } from "@/lib/@types/entities"
 
-const stats = [
-    { label: "Sessions Aujourd'hui", value: "47", icon: MessageSquare },
-    { label: "Score Moyen", value: "84.2", icon: Trophy },
-    { label: "Durée Moyenne", value: "32min", icon: Clock3 },
-    { label: "Satisfaction", value: "4.7/5", icon: Star },
-]
-
-const performanceRows = [
-    { label: "Réussite Entretiens", value: 78 },
-    { label: "Satisfaction Candidats", value: 92 },
-    { label: "Taux de Complétion", value: 85 },
-]
-
-const activeSessions = [
-    {
-        initials: "SL",
-        name: "Sophie Laurent",
-        subtitle: "Data Science • 8/15 questions",
-        status: "En cours",
-        statusClass: "bg-[#edf0f6] text-[#3d4354]",
-    },
-    {
-        initials: "JM",
-        name: "Jules Moreau",
-        subtitle: "UX Design • Mode Premium",
-        status: "Programmé",
-        statusClass: "bg-[#2f80ed] text-white",
-    },
-]
-
-const historyRows = [
-    {
-        initials: "MD",
-        name: "Marie Dubois",
-        role: "Développement Web",
-        mode: "IA Chatbot",
-        details: "12 questions",
-        score: "87/100",
-        duration: "25 min",
-        status: "Terminé",
-        statusClass: "bg-[#2f80ed] text-white",
-    },
-    {
-        initials: "PM",
-        name: "Pierre Martin",
-        role: "Marketing Digital",
-        mode: "RH Premium",
-        details: "18 questions",
-        score: "92/100",
-        duration: "45 min",
-        status: "Terminé",
-        statusClass: "bg-[#2f80ed] text-white",
-    },
-    {
-        initials: "SL",
-        name: "Sophie Laurent",
-        role: "Data Science",
-        mode: "IA Chatbot",
-        details: "8 questions",
-        score: "",
-        duration: "",
-        status: "En cours",
-        statusClass: "bg-[#edf0f6] text-[#3d4354]",
-    },
-]
+function getInitials(name: string) {
+    return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+}
 
 export default function Page() {
+    const [interviewStats, setInterviewStats] = useState<{
+        todaySessions: number
+        averageScore: number
+        averageDuration: string
+        satisfaction: number
+    } | null>(null)
+    const [activeSessions, setActiveSessions] = useState<IInterviewSession[]>([])
+    const [sessionHistory, setSessionHistory] = useState<IInterviewSession[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const perfRows = useMemo(() => {
+        if (!interviewStats) return [
+            { label: "Réussite Entretiens", value: 78 },
+            { label: "Satisfaction Candidats", value: 92 },
+            { label: "Taux de Complétion", value: 85 },
+        ]
+        const completed = sessionHistory.filter(s => s.status === "COMPLETED").length
+        const completionRate = sessionHistory.length > 0
+            ? Math.round(completed / sessionHistory.length * 100)
+            : 85
+        return [
+            { label: "Réussite Entretiens", value: Math.round(interviewStats.averageScore ?? 78) },
+            { label: "Satisfaction Candidats", value: Math.round((interviewStats.satisfaction ?? 4.6) * 20) },
+            { label: "Taux de Complétion", value: completionRate },
+        ]
+    }, [interviewStats, sessionHistory])
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [statsRes, activeRes, historyRes] = await Promise.all([
+                    interviewService.getStats(),
+                    interviewService.getActiveSessions(),
+                    interviewService.getSessionHistory({ limit: 10 }),
+                ])
+                setInterviewStats((statsRes as any)?.data ?? statsRes)
+                const activeItems = (activeRes as any)?.data ?? activeRes
+                setActiveSessions(Array.isArray(activeItems) ? activeItems : [])
+                const histItems = (historyRes as any)?.data ?? historyRes
+                setSessionHistory(Array.isArray(histItems) ? histItems : [])
+            } catch (err) {
+                console.error("[simulation-entretiens] load error:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        load()
+    }, [])
+
+    const stats = [
+        { label: "Sessions Aujourd'hui", value: interviewStats ? String(interviewStats.todaySessions) : "—", icon: MessageSquare },
+        { label: "Score Moyen", value: interviewStats ? String(interviewStats.averageScore) : "—", icon: Trophy },
+        { label: "Durée Moyenne", value: interviewStats?.averageDuration ?? "—", icon: Clock3 },
+        { label: "Satisfaction", value: interviewStats ? `${interviewStats.satisfaction}/5` : "—", icon: Star },
+    ]
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0f56d9] border-t-transparent" />
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-4">
             <div>
@@ -121,19 +126,10 @@ export default function Page() {
                             <div>
                                 <p className="font-medium text-[#2d3443]">Chatbot IA Avancé</p>
                                 <p className="mt-1 text-[#8a92a3]">Questions adaptatives basées sur le profil</p>
-                                <div className="mt-2 flex justify-between text-[#4a5162]">
-                                    <span>Précision: 94%</span>
-                                    <span>Sessions: 1,247</span>
-                                </div>
                             </div>
-
                             <div>
                                 <p className="font-medium text-[#2d3443]">Mode Premium RH</p>
                                 <p className="mt-1 text-[#8a92a3]">Entretiens avec professionnels</p>
-                                <div className="mt-2 flex justify-between text-[#4a5162]">
-                                    <span>Disponible: 8 RH</span>
-                                    <span>Sessions: 156</span>
-                                </div>
                             </div>
                         </div>
 
@@ -155,7 +151,7 @@ export default function Page() {
                         </h2>
 
                         <div className="space-y-4">
-                            {performanceRows.map((row) => (
+                            {perfRows.map((row) => (
                                 <div key={row.label} className="space-y-1">
                                     <div className="flex items-center justify-between text-[12px]">
                                         <span className="text-[#3f4657]">{row.label}</span>
@@ -172,11 +168,7 @@ export default function Page() {
                         <div className="mt-4 border-t border-[#eceff6] pt-3">
                             <p className="text-[11px] text-[#8a92a3]">Domaines populaires:</p>
                             <div className="mt-2 flex flex-wrap gap-2">
-                                {[
-                                    "Développement",
-                                    "Marketing",
-                                    "Design",
-                                ].map((label) => (
+                                {["Développement", "Marketing", "Design"].map((label) => (
                                     <Badge
                                         key={label}
                                         className="rounded-full border-0 bg-[#edf0f6] px-2 py-0.5 text-[10px] text-[#3d4354]"
@@ -196,26 +188,30 @@ export default function Page() {
                             Sessions Actives
                         </h2>
 
-                        <div className="space-y-3">
-                            {activeSessions.map((session) => (
-                                <div key={session.name} className="rounded-lg border border-[#e7ebf3] bg-[#f8f9fc] px-3 py-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
-                                                {session.initials}
+                        {activeSessions.length === 0 ? (
+                            <p className="text-[12px] text-[#8a92a3]">Aucune session active.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {activeSessions.map((session) => (
+                                    <div key={session.id} className="rounded-lg border border-[#e7ebf3] bg-[#f8f9fc] px-3 py-2">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                                    {getInitials(session.candidateName)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[12px] font-medium text-[#252c3b]">{session.candidateName}</p>
+                                                    <p className="text-[11px] text-[#7f8797]">{session.position}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-[12px] font-medium text-[#252c3b]">{session.name}</p>
-                                                <p className="text-[11px] text-[#7f8797]">{session.subtitle}</p>
-                                            </div>
+                                            <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${session.status === "ACTIVE" ? "bg-[#edf0f6] text-[#3d4354]" : "bg-[#2f80ed] text-white"}`}>
+                                                {session.status === "ACTIVE" ? "En cours" : "Programmé"}
+                                            </Badge>
                                         </div>
-                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${session.statusClass}`}>
-                                            {session.status}
-                                        </Badge>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
 
                         <Button
                             variant="outline"
@@ -232,47 +228,51 @@ export default function Page() {
                 <CardContent className="px-4 py-4">
                     <h2 className="mb-4 text-[28px] font-semibold text-[#242a38]">Historique des Sessions</h2>
 
-                    <div className="space-y-3">
-                        {historyRows.map((row) => (
-                            <div
-                                key={`${row.name}-${row.mode}`}
-                                className="flex flex-col gap-3 rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3 lg:flex-row lg:items-center lg:justify-between"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
-                                        {row.initials}
-                                    </div>
-                                    <div>
-                                        <p className="text-[12px] font-medium text-[#252c3b]">{row.name}</p>
-                                        <p className="text-[11px] text-[#7f8797]">{row.role}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-4 lg:justify-end">
-                                    <div className="text-right">
-                                        <p className="text-[12px] text-[#4a5162]">{row.mode}</p>
-                                        <p className="text-[10px] text-[#8a92a3]">{row.details}</p>
-                                    </div>
-                                    {row.score ? (
-                                        <div className="text-right">
-                                            <p className="text-[25px] font-semibold text-[#232a38]">{row.score}</p>
-                                            <p className="text-[10px] text-[#8a92a3]">{row.duration}</p>
+                    {sessionHistory.length === 0 ? (
+                        <p className="text-center text-[13px] text-[#8a92a3] py-6">Aucune session dans l'historique.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {sessionHistory.map((row) => (
+                                <div
+                                    key={row.id}
+                                    className="flex flex-col gap-3 rounded-[10px] border border-[#e7ebf3] bg-white px-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
+                                            {getInitials(row.candidateName)}
                                         </div>
-                                    ) : null}
-                                    <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${row.statusClass}`}>
-                                        {row.status}
-                                    </Badge>
-                                    <Button
-                                        variant="outline"
-                                        className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
-                                    >
-                                        <Eye className="h-3.5 w-3.5" />
-                                        Voir Détails
-                                    </Button>
+                                        <div>
+                                            <p className="text-[12px] font-medium text-[#252c3b]">{row.candidateName}</p>
+                                            <p className="text-[11px] text-[#7f8797]">{row.position}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-4 lg:justify-end">
+                                        <div className="text-right">
+                                            <p className="text-[12px] text-[#4a5162]">{row.duration} min</p>
+                                            <p className="text-[10px] text-[#8a92a3]">Durée</p>
+                                        </div>
+                                        {row.score > 0 ? (
+                                            <div className="text-right">
+                                                <p className="text-[25px] font-semibold text-[#232a38]">{row.score}/100</p>
+                                                <p className="text-[10px] text-[#8a92a3]">Score</p>
+                                            </div>
+                                        ) : null}
+                                        <Badge className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${row.status === "COMPLETED" ? "bg-[#2f80ed] text-white" : "bg-[#edf0f6] text-[#3d4354]"}`}>
+                                            {row.status === "COMPLETED" ? "Terminé" : "En cours"}
+                                        </Badge>
+                                        <Button
+                                            variant="outline"
+                                            className="h-8 rounded-lg border-[#ebedf4] bg-[#f8f9fc] px-3 text-[11px] text-[#3f4657] hover:bg-[#f1f4fa]"
+                                        >
+                                            <Eye className="h-3.5 w-3.5" />
+                                            Voir Détails
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

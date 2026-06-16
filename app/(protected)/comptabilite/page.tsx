@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useEffect, useState } from "react"
 import {
     Line,
     LineChart,
@@ -22,8 +23,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { subscriptionService, type SubscriptionStats, type SubscriptionRow } from "@/lib/services/subscription.service"
 
-const revenueData = [
+const FALLBACK_REVENUE_DATA = [
     { month: "Jan", value: 34000 },
     { month: "Fev", value: 42000 },
     { month: "Mar", value: 38500 },
@@ -32,7 +34,7 @@ const revenueData = [
     { month: "Juin", value: 52230 },
 ]
 
-const subscriptionsData = [
+const FALLBACK_SUBSCRIPTIONS_DATA = [
     { month: "Jan", value: 1140 },
     { month: "Fev", value: 1200 },
     { month: "Mar", value: 1180 },
@@ -41,70 +43,52 @@ const subscriptionsData = [
     { month: "Juin", value: 1350 },
 ]
 
-const subscriptionsRows = [
-    {
-        initials: "MD",
-        name: "Marie Dubois",
-        email: "marie.dubois@email.com",
-        type: "Candidat",
-        typeClass: "bg-[#dbe8ff] text-[#4a7de8]",
-        plan: "Standard",
-        status: "Actif",
-        statusClass: "bg-[#e1f8e8] text-[#33b06b]",
-        amount: "€19.99",
-        nextBilling: "15/03/2024",
-    },
-    {
-        initials: "TS",
-        name: "TechCorp SARL",
-        email: "contact@techcorp.fr",
-        type: "Entreprise",
-        typeClass: "bg-[#def8e8] text-[#2daa68]",
-        plan: "Business+",
-        status: "Expire bientot",
-        statusClass: "bg-[#fff1df] text-[#ff8a2b]",
-        amount: "€351.90",
-        nextBilling: "02/03/2024",
-    },
-    {
-        initials: "JM",
-        name: "Jean Martin",
-        email: "jean.martin@formation.fr",
-        type: "Formateur",
-        typeClass: "bg-[#efe1ff] text-[#a05eff]",
-        plan: "Premium",
-        status: "Essai",
-        statusClass: "bg-[#fff5d9] text-[#f3a62a]",
-        amount: "€49.99",
-        nextBilling: "28/02/2024",
-    },
-    {
-        initials: "SL",
-        name: "Sophie Laurent",
-        email: "s.laurent@email.com",
-        type: "Candidat",
-        typeClass: "bg-[#dbe8ff] text-[#4a7de8]",
-        plan: "Standard",
-        status: "Expire",
-        statusClass: "bg-[#ffe1e1] text-[#ff6b6b]",
-        amount: "€19.99",
-        nextBilling: "20/02/2024",
-    },
-    {
-        initials: "I",
-        name: "InnovSoft",
-        email: "admin@innovsoft.com",
-        type: "Entreprise",
-        typeClass: "bg-[#def8e8] text-[#2daa68]",
-        plan: "Business",
-        status: "Actif",
-        statusClass: "bg-[#e1f8e8] text-[#33b06b]",
-        amount: "€35.50",
-        nextBilling: "10/03/2024",
-    },
-]
+const STATUS_MAP: Record<string, { label: string; cls: string }> = {
+    ACTIVE: { label: "Actif", cls: "bg-[#e1f8e8] text-[#33b06b]" },
+    EXPIRED: { label: "Expiré", cls: "bg-[#fff3cd] text-[#996b00]" },
+    CANCELLED: { label: "Annulé", cls: "bg-[#ffe1e1] text-[#ff6b6b]" },
+}
+
 
 export default function Page() {
+    const [subStats, setSubStats] = useState<SubscriptionStats | null>(null)
+    const [subscriptions, setSubscriptions] = useState<SubscriptionRow[]>([])
+    const [revenueData, setRevenueData] = useState(FALLBACK_REVENUE_DATA)
+    const [subscriptionsData, setSubscriptionsData] = useState(FALLBACK_SUBSCRIPTIONS_DATA)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const token = typeof window !== "undefined" ? localStorage.getItem("goriya_token") ?? undefined : undefined
+        const load = async () => {
+            try {
+                const [statsRes, subsRes, revRes, subTrendRes] = await Promise.all([
+                    subscriptionService.getAdminStats(token),
+                    subscriptionService.getAllSubscriptions(1, 10, token),
+                    subscriptionService.getRevenueTrend(token).catch(() => null),
+                    subscriptionService.getSubscriptionsTrend(token).catch(() => null),
+                ])
+                setSubStats((statsRes as any)?.data ?? statsRes)
+                const subsData = (subsRes as any)?.data ?? subsRes
+                const items = Array.isArray(subsData) ? subsData : (subsData as any)?.data ?? []
+                setSubscriptions(items)
+                const rev = (revRes as any)?.data ?? revRes
+                if (Array.isArray(rev) && rev.length > 0) setRevenueData(rev)
+                const subTrend = (subTrendRes as any)?.data ?? subTrendRes
+                if (Array.isArray(subTrend) && subTrend.length > 0) setSubscriptionsData(subTrend)
+            } catch (err) {
+                console.error("[comptabilite] load error:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        load()
+    }, [])
+
+    const total = subStats?.total ?? 0
+    const active = subStats?.active ?? 0
+    const expired = subStats?.expired ?? 0
+    const revenue = subStats?.revenue ?? 0
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between gap-4">
@@ -121,30 +105,30 @@ export default function Page() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <KpiCard
-                    title="Revenus mensuels"
-                    value="€48 230"
-                    note="+12% vs mois dernier"
+                    title="Revenus totaux (FCFA)"
+                    value={loading ? "—" : Number(revenue).toLocaleString("fr-FR")}
+                    note="Abonnements cumulés"
                     noteClass="text-[#23b26f]"
                     icon={DollarSign}
                 />
                 <KpiCard
                     title="Abonnements actifs"
-                    value="1 247"
-                    note="+5% ce mois"
+                    value={loading ? "—" : active.toLocaleString()}
+                    note={`sur ${total} total`}
                     noteClass="text-[#23b26f]"
                     icon={Users}
                 />
                 <KpiCard
-                    title="Essais en cours"
-                    value="89"
-                    note="+23% cette semaine"
+                    title="Total abonnements"
+                    value={loading ? "—" : total.toLocaleString()}
+                    note="Tous statuts confondus"
                     noteClass="text-[#23b26f]"
                     icon={UserPlus}
                 />
                 <KpiCard
-                    title="Expirations imminentes"
-                    value="34"
-                    note="Prochains 7 jours"
+                    title="Abonnements expirés"
+                    value={loading ? "—" : expired.toLocaleString()}
+                    note="À renouveler"
                     noteClass="text-[#99a1b4]"
                     icon={AlertTriangle}
                 />
@@ -204,12 +188,13 @@ export default function Page() {
             </div>
 
             <div className="rounded-full bg-[#eef3fb] p-1">
-                <div className="grid grid-cols-5 gap-1 text-center text-[10px] text-[#7e8799]">
-                    <div className="rounded-full bg-[#2f80ed] px-3 py-1.5 text-white">Tous <span className="ml-1 rounded-full bg-white px-1.5 py-0.5 text-[#2f80ed]">1247</span></div>
-                    <div className="px-3 py-1.5">Actifs <span className="ml-1 text-[#4d5567]">856</span></div>
-                    <div className="px-3 py-1.5">Essais <span className="ml-1 text-[#4d5567]">89</span></div>
-                    <div className="px-3 py-1.5">Expirent <span className="ml-1 text-[#4d5567]">34</span></div>
-                    <div className="px-3 py-1.5">Expirés <span className="ml-1 text-[#4d5567]">268</span></div>
+                <div className="grid grid-cols-4 gap-1 text-center text-[10px] text-[#7e8799]">
+                    <div className="rounded-full bg-[#2f80ed] px-3 py-1.5 text-white">
+                        Tous <span className="ml-1 rounded-full bg-white px-1.5 py-0.5 text-[#2f80ed]">{loading ? "—" : total}</span>
+                    </div>
+                    <div className="px-3 py-1.5">Actifs <span className="ml-1 text-[#4d5567]">{loading ? "—" : active}</span></div>
+                    <div className="px-3 py-1.5">Expirés <span className="ml-1 text-[#4d5567]">{loading ? "—" : expired}</span></div>
+                    <div className="px-3 py-1.5">Annulés <span className="ml-1 text-[#4d5567]">{loading ? "—" : Math.max(0, total - active - expired)}</span></div>
                 </div>
             </div>
 
@@ -220,48 +205,65 @@ export default function Page() {
 
             <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
                 <CardContent className="px-0 pb-0 pt-2">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="border-b border-[#e3e7f0] hover:bg-transparent">
-                                <TableHead className="px-4 text-[11px] font-medium text-[#9aa2b2]">Utilisateur</TableHead>
-                                <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Type</TableHead>
-                                <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Plan</TableHead>
-                                <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Statut</TableHead>
-                                <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Montant</TableHead>
-                                <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Prochaine facturation</TableHead>
-                                <TableHead className="w-10 px-4" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {subscriptionsRows.map((row) => (
-                                <TableRow key={`${row.name}-${row.email}`} className="border-b border-[#e9edf5] hover:bg-[#fbfcff]">
-                                    <TableCell className="px-4 py-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#edf4ff] text-[10px] font-medium text-[#5a8df1]">
-                                                {row.initials}
-                                            </div>
-                                            <div>
-                                                <p className="text-[12px] font-medium text-[#2d3443]">{row.name}</p>
-                                                <p className="text-[11px] text-[#8e96a8]">{row.email}</p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="py-3 text-[11px] text-[#2d3443]">
-                                        <span className={`rounded-full px-2 py-0.5 ${row.typeClass}`}>{row.type}</span>
-                                    </TableCell>
-                                    <TableCell className="py-3 text-[12px] text-[#4a5162]">{row.plan}</TableCell>
-                                    <TableCell className="py-3 text-[11px]">
-                                        <span className={`rounded-full px-2 py-0.5 ${row.statusClass}`}>{row.status}</span>
-                                    </TableCell>
-                                    <TableCell className="py-3 text-[12px] text-[#4a5162]">{row.amount}</TableCell>
-                                    <TableCell className="py-3 text-[12px] text-[#7d8698]">{row.nextBilling}</TableCell>
-                                    <TableCell className="px-4 py-3 text-right text-[#3d4455]">
-                                        <MoreHorizontal className="ml-auto h-4 w-4" />
-                                    </TableCell>
+                    {loading ? (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0f56d9] border-t-transparent" />
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="border-b border-[#e3e7f0] hover:bg-transparent">
+                                    <TableHead className="px-4 text-[11px] font-medium text-[#9aa2b2]">Utilisateur</TableHead>
+                                    <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Plan</TableHead>
+                                    <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Statut</TableHead>
+                                    <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Montant (FCFA)</TableHead>
+                                    <TableHead className="text-[11px] font-medium text-[#9aa2b2]">Expiration</TableHead>
+                                    <TableHead className="w-10 px-4" />
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {subscriptions.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="py-8 text-center text-[13px] text-[#8a92a3]">
+                                            Aucun abonnement trouvé.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : subscriptions.map((sub) => {
+                                    const name = sub.user?.name ?? "—"
+                                    const email = sub.user?.email ?? "—"
+                                    const initials = name.split(" ").map((w: string) => w[0]).filter(Boolean).join("").toUpperCase().slice(0, 2)
+                                    const planName = sub.plan?.name ?? "—"
+                                    const amount = sub.plan?.price != null ? Number(sub.plan.price).toLocaleString("fr-FR") : "—"
+                                    const statusInfo = STATUS_MAP[sub.status] ?? { label: sub.status, cls: "bg-[#f0f2f6] text-[#4a5162]" }
+                                    const endDate = sub.endDate ? new Date(sub.endDate).toLocaleDateString("fr-FR") : "—"
+                                    return (
+                                        <TableRow key={sub.id} className="border-b border-[#e9edf5] hover:bg-[#fbfcff]">
+                                            <TableCell className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#edf4ff] text-[10px] font-medium text-[#5a8df1]">
+                                                        {initials}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[12px] font-medium text-[#2d3443]">{name}</p>
+                                                        <p className="text-[11px] text-[#8e96a8]">{email}</p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-3 text-[12px] text-[#4a5162]">{planName}</TableCell>
+                                            <TableCell className="py-3 text-[11px]">
+                                                <span className={`rounded-full px-2 py-0.5 ${statusInfo.cls}`}>{statusInfo.label}</span>
+                                            </TableCell>
+                                            <TableCell className="py-3 text-[12px] text-[#4a5162]">{amount}</TableCell>
+                                            <TableCell className="py-3 text-[12px] text-[#7d8698]">{endDate}</TableCell>
+                                            <TableCell className="px-4 py-3 text-right text-[#3d4455]">
+                                                <MoreHorizontal className="ml-auto h-4 w-4" />
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
         </div>
