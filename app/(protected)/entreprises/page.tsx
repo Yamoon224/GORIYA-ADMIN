@@ -226,7 +226,7 @@ export default function EntreprisesPage() {
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-white">
                                             {company.logo ? (
-                                                <img src={company.logo} alt={company.name} className="h-8 w-8 rounded-lg object-cover" />
+                                                <img src={company.logo} alt={company.name} className="h-8 w-8 rounded-lg object-cover" onError={(e) => { e.currentTarget.style.display = "none" }} />
                                             ) : (
                                                 <Building2 className="h-4 w-4" />
                                             )}
