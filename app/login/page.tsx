@@ -74,7 +74,7 @@ export default function Page() {
                                     <Input
                                         type="email"
                                         value={credentials.email}
-                                        placeholder=""
+                                        placeholder="Adresse e-mail administrateur"
                                         onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                                         required
                                         className="h-[44px] rounded-xl border-0 bg-[#eef0f4] px-4 text-[16px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300 md:h-[40px]"
@@ -87,7 +87,7 @@ export default function Page() {
                                         <Input
                                             type={showPassword ? "text" : "password"}
                                             value={credentials.password}
-                                            placeholder=""
+                                            placeholder="Mot de passe"
                                             onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                                             required
                                             className="h-[44px] rounded-xl border-0 bg-[#eef0f4] px-4 pr-11 text-[16px] shadow-none focus-visible:ring-2 focus-visible:ring-blue-300 md:h-[40px]"

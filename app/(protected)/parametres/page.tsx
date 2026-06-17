@@ -118,6 +118,7 @@ export default function Page() {
                                 <Input
                                     value={platformName}
                                     onChange={(event) => setPlatformName(event.target.value)}
+                                    placeholder="Nom de la plateforme"
                                     className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
                                 />
                             </div>
@@ -127,6 +128,7 @@ export default function Page() {
                                 <Input
                                     value={mainUrl}
                                     onChange={(event) => setMainUrl(event.target.value)}
+                                    placeholder="https://exemple.com"
                                     className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
                                 />
                             </div>
@@ -136,6 +138,7 @@ export default function Page() {
                                 <Input
                                     value={supportEmail}
                                     onChange={(event) => setSupportEmail(event.target.value)}
+                                    placeholder="support@exemple.com"
                                     className="h-10 rounded-lg border-[#edf0f5] bg-[#f8f9fc] text-[12px] text-[#313847] shadow-none"
                                 />
                             </div>
