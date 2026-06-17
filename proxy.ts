@@ -1,32 +1,23 @@
-import { getToken } from 'next-auth/jwt';
-import { NextResponse, NextRequest } from 'next/server';
-import { isPublicRoute, redirectToLogin } from '@/lib/utils';
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export async function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon", "/images", "/icon", "/api"]
 
-    // ✅ routes publiques
-    if (isPublicRoute(pathname)) {
-        return NextResponse.next();
+export function proxy(request: NextRequest) {
+    const { pathname } = request.nextUrl
+
+    if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+        return NextResponse.next()
     }
 
-    // ✅ récupérer le token JWT côté middleware
-    const token = await getToken({
-        req: request,
-        secret: process.env.NEXT_AUTH_SECRET,  
-    });
-
-    // ✅ si pas de token, redirige vers /auth/signin
+    const token = request.cookies.get("goriya_token")?.value
     if (!token) {
-        return redirectToLogin(request);
+        return NextResponse.redirect(new URL("/login", request.url))
     }
 
-    return NextResponse.next();
+    return NextResponse.next()
 }
 
-// ✅ Config matcher pour exclure les fichiers statiques et routes auth
 export const config = {
-    matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|manifest.json|service-worker.js|icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|auth|api/auth|auth/signout).*)',
-    ],
-};
+    matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+}
