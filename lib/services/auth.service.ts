@@ -4,7 +4,7 @@ import { IUser } from "@/lib/@types/entities";
 
 export const authService = {
     login: async (credentials: { email: string; password: string }) => {
-        return apiRequest<{ access_token: string; user: IUser }>({
+        return apiRequest<ApiResponse<{ access_token: string; user: IUser }>>({
             endpoint: "/auth/login",
             method: "POST",
             data: credentials,

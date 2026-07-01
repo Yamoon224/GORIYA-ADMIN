@@ -67,6 +67,7 @@ export const studentsService = {
             endpoint: "/students/export",
             method: "GET",
             params: { format: "csv" },
+            responseType: "blob",
         })
     },
 }

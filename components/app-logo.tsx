@@ -1,4 +1,7 @@
-
+interface AppLogoProps {
+    width?: number | string
+    height?: number | string
+}
 
 export function AppLogo({ width = 80, height = "auto" }: AppLogoProps) {
     return (

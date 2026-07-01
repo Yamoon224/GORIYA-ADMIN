@@ -24,4 +24,6 @@ export interface RequestOptions {
     method?: Method; // GET, POST, PUT, PATCH, DELETE
     data?: any;      // body data pour POST/PUT/PATCH
     params?: any;    // query params pour GET
+    token?: string;  // token explicite (sinon résolu automatiquement)
+    responseType?: 'json' | 'blob' | 'text' | 'arraybuffer';
 }

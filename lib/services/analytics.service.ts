@@ -62,6 +62,7 @@ export const analyticsService = {
             endpoint: "/analytics/export",
             method: "GET",
             params: { period, format: "pdf" },
+            responseType: "blob",
         })
     },
 }

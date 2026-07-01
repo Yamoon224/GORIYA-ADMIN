@@ -14,8 +14,10 @@ export default function ProtectedLayout({
     const [ready, setReady] = useState(false)
 
     useEffect(() => {
-        const token = localStorage.getItem("goriya_token")
-        if (!token) {
+        // Le token vit dans un cookie httpOnly (illisible en JS) et la vraie garde d'accès est le
+        // middleware serveur ; ce check ne sert qu'à éviter un flash de contenu protégé.
+        const user = localStorage.getItem("goriya_user")
+        if (!user) {
             router.replace("/login")
         } else {
             setReady(true)

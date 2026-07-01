@@ -6,7 +6,6 @@ import { IUser } from "@/lib/@types/entities"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { authService } from "@/lib/services/auth.service"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "./sidebar"
 
@@ -20,10 +19,12 @@ export function Header() {
 
     const handleLogout = async () => {
         try {
-            await authService.logout()
-            router.push("/login")
+            await fetch("/api/session", { method: "DELETE" })
         } catch (error) {
             console.error("Logout error:", error)
+        } finally {
+            localStorage.removeItem("goriya_user")
+            router.push("/login")
         }
     }
 

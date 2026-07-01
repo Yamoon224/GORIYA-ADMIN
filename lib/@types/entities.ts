@@ -79,6 +79,7 @@ export interface IPortfolio {
     views: number;
     downloads: number;
     likes: number;
+    featured: boolean;
     createdDate: Date;
     user?: IUser | null;
     createdAt: Date;

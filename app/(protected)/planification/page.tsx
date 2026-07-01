@@ -17,12 +17,12 @@ import {
 import { planningService } from "@/lib/services/planning.service"
 import type { ICalendarEvent } from "@/lib/@types/entities"
 
-function formatTime(iso: string) {
+function formatTime(iso: string | Date) {
     const d = new Date(iso)
     return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
 }
 
-function durationMinutes(start: string, end: string) {
+function durationMinutes(start: string | Date, end: string | Date) {
     const diff = (new Date(end).getTime() - new Date(start).getTime()) / 60000
     if (diff >= 60) return `${Math.round(diff / 60)}h`
     return `${diff} min`

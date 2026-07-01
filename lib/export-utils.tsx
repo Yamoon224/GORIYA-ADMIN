@@ -1,3 +1,14 @@
+const escapeHtml = (value: unknown): string =>
+  String(value ?? "").replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case "&": return "&amp;"
+      case "<": return "&lt;"
+      case ">": return "&gt;"
+      case '"': return "&quot;"
+      default: return "&#39;"
+    }
+  })
+
 export const exportToCSV = (data: any[], filename: string) => {
   if (!data.length) return
 
@@ -51,7 +62,7 @@ export const exportToPDF = async (data: any[], filename: string, title: string) 
     <!DOCTYPE html>
     <html>
     <head>
-      <title>${title}</title>
+      <title>${escapeHtml(title)}</title>
       <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
@@ -62,12 +73,12 @@ export const exportToPDF = async (data: any[], filename: string, title: string) 
       </style>
     </head>
     <body>
-      <h1>${title}</h1>
+      <h1>${escapeHtml(title)}</h1>
       <table>
         <thead>
           <tr>
             ${Object.keys(data[0] || {})
-              .map((key) => `<th>${key}</th>`)
+              .map((key) => `<th>${escapeHtml(key)}</th>`)
               .join("")}
           </tr>
         </thead>
@@ -77,7 +88,7 @@ export const exportToPDF = async (data: any[], filename: string, title: string) 
               (row) => `
             <tr>
               ${Object.values(row)
-                .map((value) => `<td>${value}</td>`)
+                .map((value) => `<td>${escapeHtml(value)}</td>`)
                 .join("")}
             </tr>
           `,

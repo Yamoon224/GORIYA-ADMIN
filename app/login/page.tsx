@@ -6,7 +6,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { authService } from "@/lib/services/auth.service"
 import { Mail, Phone, Globe, Eye, EyeOff } from "lucide-react"
 import { AppLogo } from "@/components/app-logo"
 import { toast } from "sonner"
@@ -25,22 +24,25 @@ export default function Page() {
         setLoading(true)
 
         try {
-            const response = await authService.login(credentials)
+            const res = await fetch("/api/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(credentials),
+            })
+            const body = await res.json()
 
-            if ((response.user as any)?.role !== "ADMIN") {
-                toast.error("Accès refusé. Cette interface est réservée aux administrateurs.")
+            if (!res.ok) {
+                toast.error(body?.message ?? "Email ou mot de passe incorrect")
                 return
             }
 
-            localStorage.setItem("goriya_token", response.access_token)
-            localStorage.setItem("goriya_user", JSON.stringify(response.user))
-            document.cookie = `goriya_token=${response.access_token}; path=/; max-age=3600; samesite=lax`
+            localStorage.setItem("goriya_user", JSON.stringify(body.user))
 
             toast.success("Connexion réussie")
             router.push("/dashboard")
         } catch (error) {
             console.error("Login error:", error)
-            toast.error("Email ou mot de passe incorrect")
+            toast.error("Une erreur est survenue. Veuillez réessayer.")
         } finally {
             setLoading(false)
         }

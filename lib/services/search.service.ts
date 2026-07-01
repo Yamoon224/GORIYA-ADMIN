@@ -55,6 +55,7 @@ export const searchService = {
             endpoint: "/search/export",
             method: "GET",
             params: { q: query, ...filters, format: "csv" },
+            responseType: "blob",
         })
     },
 }

@@ -32,27 +32,24 @@ export interface SubscriptionRow {
 }
 
 export const subscriptionService = {
-    getAdminStats: (token?: string) =>
-        apiRequest<SubscriptionStats>({ endpoint: "/subscriptions/admin/stats", method: "GET", token }),
+    getAdminStats: () =>
+        apiRequest<SubscriptionStats>({ endpoint: "/subscriptions/admin/stats", method: "GET" }),
 
-    getAllSubscriptions: (page = 1, limit = 10, token?: string) =>
+    getAllSubscriptions: (page = 1, limit = 10) =>
         apiRequest<{ data: SubscriptionRow[]; total: number; page: number; limit: number }>({
             endpoint: `/subscriptions/admin/all?page=${page}&limit=${limit}`,
             method: "GET",
-            token,
         }),
 
-    getRevenueTrend: (token?: string) =>
+    getRevenueTrend: () =>
         apiRequest<{ data: Array<{ month: string; value: number }> }>({
             endpoint: "/subscriptions/admin/revenue-trend",
             method: "GET",
-            token,
         }),
 
-    getSubscriptionsTrend: (token?: string) =>
+    getSubscriptionsTrend: () =>
         apiRequest<{ data: Array<{ month: string; value: number }> }>({
             endpoint: "/subscriptions/admin/subscriptions-trend",
             method: "GET",
-            token,
         }),
 }

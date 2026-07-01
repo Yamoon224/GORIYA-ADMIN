@@ -58,14 +58,13 @@ export default function Page() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const token = typeof window !== "undefined" ? localStorage.getItem("goriya_token") ?? undefined : undefined
         const load = async () => {
             try {
                 const [statsRes, subsRes, revRes, subTrendRes] = await Promise.all([
-                    subscriptionService.getAdminStats(token),
-                    subscriptionService.getAllSubscriptions(1, 10, token),
-                    subscriptionService.getRevenueTrend(token).catch(() => null),
-                    subscriptionService.getSubscriptionsTrend(token).catch(() => null),
+                    subscriptionService.getAdminStats(),
+                    subscriptionService.getAllSubscriptions(1, 10),
+                    subscriptionService.getRevenueTrend().catch(() => null),
+                    subscriptionService.getSubscriptionsTrend().catch(() => null),
                 ])
                 setSubStats((statsRes as any)?.data ?? statsRes)
                 const subsData = (subsRes as any)?.data ?? subsRes

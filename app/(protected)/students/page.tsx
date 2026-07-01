@@ -60,7 +60,7 @@ export default function Page() {
         const normalized = searchTerm.trim().toLowerCase()
         if (!normalized) return students
         return students.filter((s) =>
-            [s.name, s.email].some((v) => v.toLowerCase().includes(normalized))
+            [s.name, s.email].some((v) => (v ?? "").toLowerCase().includes(normalized))
         )
     }, [searchTerm, students])
 

@@ -44,7 +44,7 @@ function toResultItem(raw: IUser | IJobOffer): ResultItem {
             initials: u.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2),
             title: u.name,
             subtitle: "Candidat",
-            location: u.company?.location ?? "—",
+            location: "—",
             metaOne: "—",
             metaTwo: new Date(u.registrationDate).toLocaleDateString("fr-FR"),
             tags: [],

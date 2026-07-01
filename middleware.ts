@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 
 const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon", "/images", "/icon", "/api"]
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {

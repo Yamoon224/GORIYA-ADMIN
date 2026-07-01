@@ -1,79 +1,41 @@
 import { twMerge } from 'tailwind-merge'
 import { IUser } from '@/lib/@types/entities'
 import { clsx, type ClassValue } from 'clsx'
-import { NextRequest, NextResponse } from 'next/server'
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
 /**
- * Détermine si une route est publique (accessible sans authentification)
+ * Lit le profil utilisateur stocké côté client (localStorage `goriya_user`).
+ * Le token, lui, vit uniquement dans un cookie httpOnly : il n'est jamais lisible en JS.
  */
-export function isPublicRoute(pathname: string) {
-    const exactPublicRoutes = [
-        '/',
-        '/manifest.json',
-        '/service-worker.js',
-        '/favicon.ico',
-    ];
+export const getAuth = (): { user: IUser } | null => {
+    if (typeof window === 'undefined') return null
 
-    const publicPrefixes = [
-        '/auth',
-        '/images',
-        '/icon',
-    ];
+    const storedUser = localStorage.getItem('goriya_user')
+    if (!storedUser) return null
 
-    if (
-        pathname.startsWith('/_next/static') ||
-        pathname.startsWith('/_next/image')
-    ) {
-        return true;
+    try {
+        return { user: JSON.parse(storedUser) as IUser }
+    } catch {
+        return null
     }
-
-    if (exactPublicRoutes.includes(pathname)) {
-        return true;
-    }
-
-    return publicPrefixes.some(prefix =>
-        pathname.startsWith(prefix + '/')
-    );
 }
 
-export function redirectToLogin(request: NextRequest) {
-    const response = NextResponse.redirect(new URL('/auth/signin', request.url))
-
-    // ❌ Supprime le cookie invalide
-    response.cookies.delete('access_token')
-
-    return response
-}
-
-export const getAuth = (): { token: string; user: IUser } | null => {
-    const stored = localStorage.getItem("auth")
-    if (!stored) return null
-    return JSON.parse(stored)
-}
-
-/** Résout le token JWT : priorité au token explicite, sinon localStorage (client) ou cookie (server). */
+/** Résout le token JWT côté serveur uniquement (cookie httpOnly `goriya_token`, illisible côté client). */
 export async function resolveToken(): Promise<string | undefined> {
-    // Côté client → localStorage
     if (typeof window !== 'undefined') {
-        return getAuth()?.token ?? undefined;
+        return undefined;
     }
 
-    // Côté serveur → cookie "auth" (import dynamique pour éviter next/headers côté client)
     try {
         const { cookies } = await import('next/headers');
         const cookieStore = await cookies();
-        const authCookie = cookieStore.get('auth')?.value;
-        if (authCookie) {
-            const auth = JSON.parse(authCookie);
-            return auth.token ?? undefined;
-        }
-    } catch {}
-
-    return undefined;
+        return cookieStore.get('goriya_token')?.value ?? undefined;
+    } catch {
+        return undefined;
+    }
 }
 
 export function formatDate(
