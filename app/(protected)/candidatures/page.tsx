@@ -187,7 +187,7 @@ export default function Page() {
     return (
         <div className="space-y-4">
             <div>
-                <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Candidatures</h1>
+                <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Candidatures</h1>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

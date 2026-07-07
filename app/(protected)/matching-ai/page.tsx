@@ -89,7 +89,7 @@ export default function Page() {
     return (
         <div className="space-y-4">
             <div>
-                <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Matching IA Avancé</h1>
+                <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Matching IA Avancé</h1>
                 <p className="mt-1 text-[14px] text-[#7f8797]">
                     Algorithme intelligent de mise en relation candidats-entreprises
                 </p>
@@ -217,7 +217,7 @@ export default function Page() {
                             {recentMatches.map((match) => (
                                 <div key={match.id} className="rounded-[10px] border border-[#e7ebf3] bg-white px-4 py-3">
                                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex flex-wrap items-center gap-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4e8df3] to-[#6b47e8] text-[11px] font-semibold text-white">
                                                     {getInitials(match.candidateName)}

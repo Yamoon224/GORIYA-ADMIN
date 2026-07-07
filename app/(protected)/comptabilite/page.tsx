@@ -90,9 +90,9 @@ export default function Page() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Comptabilite</h1>
+                    <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Comptabilite</h1>
                     <p className="mt-1 text-[14px] text-[#7f8797]">Gestion des abonnements et facturation des utilisateurs</p>
                 </div>
 

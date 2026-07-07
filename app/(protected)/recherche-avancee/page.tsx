@@ -149,9 +149,9 @@ export default function Page() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Recherche Avancée</h1>
+                    <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Recherche Avancée</h1>
                     <p className="mt-1 text-[14px] text-[#7f8797]">
                         Moteur de recherche intelligent pour candidats et offres d'emploi
                     </p>
@@ -288,7 +288,7 @@ export default function Page() {
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <p className="text-[13px] text-[#7f8797]">
-                            {searched ? `${totalCount} résultat${totalCount !== 1 ? "s" : ""} trouvé${totalCount !== 1 ? "s" : ""}` : "Lancez une recherche"}
+                            {searched ? `${totalCount} résultat${totalCount !== 1 ? "s" : ""} trouvé${totalCount !== 1 ? "s" : ""}` : "Lance une recherche"}
                         </p>
                         <Select defaultValue="pertinent">
                             <SelectTrigger className="h-9 w-[170px] rounded-lg border-[#eceff5] bg-[#f8f9fc] text-[12px] text-[#4d5567]">

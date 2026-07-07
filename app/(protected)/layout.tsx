@@ -34,7 +34,7 @@ export default function ProtectedLayout({
 
     return (
         <div className="flex h-full bg-gray-50">
-            <Sidebar className="hidden md:flex md:flex-shrink-0" />
+            <Sidebar className="hidden lg:flex lg:flex-shrink-0" />
 
             <div className="flex-1 flex flex-col min-h-0">
                 <Header />

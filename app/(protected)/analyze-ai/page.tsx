@@ -130,10 +130,10 @@ export default function Page() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Analyse IA des CV</h1>
-                    <p className="mt-1 text-[14px] text-[#7f8797]">Analysez et évaluez les CV avec l'intelligence artificielle</p>
+                    <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Analyse IA des CV</h1>
+                    <p className="mt-1 text-[14px] text-[#7f8797]">Analyse et évalue les CV avec l'intelligence artificielle</p>
                 </div>
                 <Button className="mt-1 h-9 rounded-full bg-[#0f56d9] px-5 text-[12px] font-semibold text-white hover:bg-[#0a4cc5]">
                     <Sparkles className="h-3.5 w-3.5" />
@@ -155,7 +155,7 @@ export default function Page() {
                         </div>
                         <h2 className="text-[18px] font-semibold text-[#232939]">Analyser un nouveau CV</h2>
                         <p className="mt-2 text-[12px] text-[#7f8797]">
-                            Glissez-déposez un fichier PDF ou Word, ou cliquez pour sélectionner
+                            Glisse-dépose un fichier PDF ou Word, ou clique pour sélectionner
                         </p>
                         <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFileUpload} />

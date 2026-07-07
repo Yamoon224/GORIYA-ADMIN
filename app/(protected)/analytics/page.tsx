@@ -106,7 +106,7 @@ export default function Page() {
     return (
         <div className="space-y-4">
             <div>
-                <h1 className="text-[40px] font-semibold leading-tight text-[#242a38]">Analytics & Rapports</h1>
+                <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[34px] lg:text-[40px]">Analytics & Rapports</h1>
                 <p className="mt-1 text-[14px] text-[#7f8797]">Analyse detaillee des performances de la plateforme Goriya</p>
             </div>
 

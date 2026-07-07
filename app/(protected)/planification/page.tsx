@@ -94,9 +94,9 @@ export default function Page() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Planification & Agenda</h1>
+                    <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Planification & Agenda</h1>
                     <p className="mt-1 text-[14px] text-[#7f8797]">
                         Gestion centralisée des rendez-vous, entretiens et formations
                     </p>
@@ -127,8 +127,8 @@ export default function Page() {
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_340px]">
                 <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none min-h-[640px]">
                     <CardContent className="px-4 py-4">
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                            <h2 className="flex items-center gap-2 text-[30px] font-semibold text-[#242a38]">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h2 className="flex items-center gap-2 text-[20px] font-semibold text-[#242a38] sm:text-[24px] lg:text-[30px]">
                                 <CalendarDays className="h-4 w-4" />
                                 Aujourd'hui — {todayLabel}
                             </h2>

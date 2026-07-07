@@ -65,9 +65,9 @@ export default function Page() {
     return (
         <div className="space-y-4">
             <div className="rounded-[10px] bg-gradient-to-r from-[#1f69d8] via-[#0f3e92] to-[#071c3a] px-5 py-4 text-white">
-                <h1 className="text-[39px] font-semibold leading-tight">Tableau de Bord Goriya</h1>
+                <h1 className="text-[28px] font-semibold leading-tight sm:text-[33px] lg:text-[39px]">Tableau de Bord Goriya</h1>
                 <p className="max-w-[760px] text-[14px] text-[#cfe0ff]">
-                    Gérez votre plateforme d'emploi IA, analysez les performances et optimisez l'expérience utilisateur pour
+                    Gère ta plateforme d'emploi IA, analyse les performances et optimise l'expérience utilisateur pour
                     étudiants et entreprises.
                 </p>
                 <div className="pointer-events-none absolute" />

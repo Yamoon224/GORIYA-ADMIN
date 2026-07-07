@@ -42,7 +42,7 @@ export default function Page() {
             router.push("/dashboard")
         } catch (error) {
             console.error("Login error:", error)
-            toast.error("Une erreur est survenue. Veuillez réessayer.")
+            toast.error("Une erreur est survenue. Réessaie.")
         } finally {
             setLoading(false)
         }

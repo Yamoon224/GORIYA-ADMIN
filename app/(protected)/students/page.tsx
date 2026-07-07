@@ -99,10 +99,10 @@ export default function Page() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Étudiants/Candidats</h1>
-                    <p className="mt-1 text-[14px] text-[#7f8797]">Gérez les profils des candidats sur la plateforme</p>
+                    <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Étudiants/Candidats</h1>
+                    <p className="mt-1 text-[14px] text-[#7f8797]">Gère les profils des candidats sur la plateforme</p>
                 </div>
 
                 <Button
@@ -234,7 +234,7 @@ export default function Page() {
 
             <Card className="rounded-[10px] border border-[#d9dce6] bg-white py-0 shadow-none">
                 <CardContent className="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-                    <p className="text-[12px] text-[#8a92a3]">Sélectionnez des candidats pour des actions en lot</p>
+                    <p className="text-[12px] text-[#8a92a3]">Sélectionne des candidats pour des actions en lot</p>
                     <div className="flex flex-wrap gap-2 lg:justify-end">
                         <Button
                             variant="outline"

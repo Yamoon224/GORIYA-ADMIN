@@ -103,10 +103,10 @@ export default function Page() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-[39px] font-semibold leading-tight text-[#242a38]">Offres d'Emploi</h1>
-                    <p className="mt-1 text-[14px] text-[#7f8797]">Gérez toutes les annonces d'emploi sur la plateforme</p>
+                    <h1 className="text-[28px] font-semibold leading-tight text-[#242a38] sm:text-[33px] lg:text-[39px]">Offres d'Emploi</h1>
+                    <p className="mt-1 text-[14px] text-[#7f8797]">Gère toutes les annonces d'emploi sur la plateforme</p>
                 </div>
 
                 <Button
@@ -306,7 +306,7 @@ export default function Page() {
                         <div>
                             <p className="text-[13px] font-semibold text-[#f0a04b]">Offres Urgentes</p>
                             <p className="mt-1 text-[11px] text-[#8a7b69]">
-                                {jobStats?.closed ?? 0} offres fermées. Contactez les entreprises pour renouveler ou prolonger.
+                                {jobStats?.closed ?? 0} offres fermées. Contacte les entreprises pour renouveler ou prolonger.
                             </p>
                             <Button variant="outline" className="mt-2 h-7 rounded-full border-[#f0c28e] bg-white px-3 text-[10px] text-[#cb7b1b] hover:bg-[#fff5e8]">
                                 Voir les Offres Expirantes
