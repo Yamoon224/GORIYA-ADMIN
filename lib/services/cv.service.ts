@@ -12,14 +12,14 @@ export const cvService = {
             failed: number
             averageScore: number
         }>>({
-            endpoint: "/cv-analysis/stats",
+            endpoint: "/admin/cv-analysis/stats",
             method: "GET",
         })
     },
 
     getRecentAnalyses: async (params?: { page?: number; limit?: number; status?: CVStatus }) => {
         return apiRequest<IPaginatedResponse<ICVAnalysis>>({
-            endpoint: "/cv-analysis/recent",
+            endpoint: "/admin/cv-analysis/recent",
             method: "GET",
             params,
         })
@@ -27,14 +27,14 @@ export const cvService = {
 
     getAnalysisById: async (id: string) => {
         return apiRequest<ApiResponse<ICVAnalysis>>({
-            endpoint: `/cv-analysis/${id}`,
+            endpoint: `/admin/cv-analysis/${id}`,
             method: "GET",
         })
     },
 
     getRecommendations: async () => {
         return apiRequest<ApiResponse<Array<{ category: string; suggestion: string; impact: string }>>>({
-            endpoint: "/cv-analysis/recommendations",
+            endpoint: "/admin/cv-analysis/recommendations",
             method: "GET",
         })
     },
@@ -46,7 +46,7 @@ export const cvService = {
             strengths: string[]
             improvements: string[]
         }>>({
-            endpoint: "/cv/analyze",
+            endpoint: "/admin/cv/analyze",
             method: "POST",
             data: cvData,
         })
@@ -56,7 +56,7 @@ export const cvService = {
         const formData = new FormData()
         formData.append("cv", file)
         return apiRequest<ApiResponse<{ cvUrl: string }>>({
-            endpoint: "/cv/upload",
+            endpoint: "/admin/cv/upload",
             method: "POST",
             data: formData,
         })
@@ -64,7 +64,7 @@ export const cvService = {
 
     deleteAnalysis: async (id: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/cv-analysis/${id}`,
+            endpoint: `/admin/cv-analysis/${id}`,
             method: "DELETE",
         })
     },

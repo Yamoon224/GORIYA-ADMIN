@@ -18,14 +18,14 @@ export const scoringService = {
             accuracy: number
             averageTime: string
         }>>({
-            endpoint: "/scoring/stats",
+            endpoint: "/admin/scoring/stats",
             method: "GET",
         })
     },
 
     getScoringCriteria: async () => {
         return apiRequest<ApiResponse<IScoringCriteria[]>>({
-            endpoint: "/scoring/criteria",
+            endpoint: "/admin/scoring/criteria",
             method: "GET",
         })
     },
@@ -37,14 +37,14 @@ export const scoringService = {
             f1Score: number
             trendData: Array<{ month: string; precision: number; recall: number }>
         }>>({
-            endpoint: "/scoring/performance",
+            endpoint: "/admin/scoring/performance",
             method: "GET",
         })
     },
 
     getRecentAnalyses: async (params?: { page?: number; limit?: number; status?: ScoringStatus }) => {
         return apiRequest<IPaginatedResponse<IScoringResult>>({
-            endpoint: "/scoring/recent",
+            endpoint: "/admin/scoring/recent",
             method: "GET",
             params,
         })
@@ -52,14 +52,14 @@ export const scoringService = {
 
     getScoringById: async (id: string) => {
         return apiRequest<ApiResponse<IScoringResult>>({
-            endpoint: `/scoring/${id}`,
+            endpoint: `/admin/scoring/${id}`,
             method: "GET",
         })
     },
 
     scoreCandidate: async (data: { candidateId: string; position: string }) => {
         return apiRequest<ApiResponse<IScoringResult>>({
-            endpoint: "/scoring/analyze",
+            endpoint: "/admin/scoring/analyze",
             method: "POST",
             data,
         })
@@ -67,7 +67,7 @@ export const scoringService = {
 
     updateCriteria: async (criteria: IScoringCriteria[]) => {
         return apiRequest<ApiResponse<IScoringCriteria[]>>({
-            endpoint: "/scoring/criteria",
+            endpoint: "/admin/scoring/criteria",
             method: "PATCH",
             data: { criteria },
         })

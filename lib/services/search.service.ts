@@ -17,7 +17,7 @@ export interface ISearchFilters {
 export const searchService = {
     search: async (query: string, filters?: ISearchFilters) => {
         return apiRequest<IPaginatedResponse<IUser | IJobOffer>>({
-            endpoint: "/search",
+            endpoint: "/admin/search",
             method: "GET",
             params: { q: query, ...filters },
         })
@@ -25,7 +25,7 @@ export const searchService = {
 
     searchCandidates: async (query: string, filters?: Omit<ISearchFilters, "type">) => {
         return apiRequest<IPaginatedResponse<IUser>>({
-            endpoint: "/search/candidates",
+            endpoint: "/admin/search/candidates",
             method: "GET",
             params: { q: query, ...filters },
         })
@@ -33,7 +33,7 @@ export const searchService = {
 
     searchOffers: async (query: string, filters?: Omit<ISearchFilters, "type">) => {
         return apiRequest<IPaginatedResponse<IJobOffer>>({
-            endpoint: "/search/offers",
+            endpoint: "/admin/search/offers",
             method: "GET",
             params: { q: query, ...filters },
         })
@@ -45,14 +45,14 @@ export const searchService = {
             locations: string[]
             experiences: string[]
         }>>({
-            endpoint: "/search/filters",
+            endpoint: "/admin/search/filters",
             method: "GET",
         })
     },
 
     exportResults: async (query: string, filters?: ISearchFilters) => {
         return apiRequest<Blob>({
-            endpoint: "/search/export",
+            endpoint: "/admin/search/export",
             method: "GET",
             params: { q: query, ...filters, format: "csv" },
             responseType: "blob",

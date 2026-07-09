@@ -36,14 +36,14 @@ export const jobService = {
             draft: number
             totalApplicants: number
         }>>({
-            endpoint: "/job-offers/stats",
+            endpoint: "/admin/job-offers/stats",
             method: "GET",
         })
     },
 
     getSectorDistribution: async () => {
         return apiRequest<ApiResponse<Array<{ name: string; count: number; percentage: number }>>>({
-            endpoint: "/job-offers/sectors",
+            endpoint: "/admin/job-offers/sectors",
             method: "GET",
         })
     },
@@ -65,8 +65,11 @@ export const jobService = {
     },
 
     updateJobStatus: async (id: string, status: JobStatus) => {
+        // Pas de route dédiée /job-offers/{id}/status côté backend — PATCH
+        // /job-offers/{id} accepte déjà `status` (ADMIN outrepasse la
+        // vérification de propriété, voir AuthorizesOwnership).
         return apiRequest<ApiResponse<IJobOffer>>({
-            endpoint: `/job-offers/${id}/status`,
+            endpoint: `/job-offers/${id}`,
             method: "PATCH",
             data: { status },
         })
@@ -81,7 +84,7 @@ export const jobService = {
 
     applyToJob: async (jobId: string, applicationData: { coverLetter?: string; resumeUrl?: string }) => {
         return apiRequest<ApiResponse<ICandidature>>({
-            endpoint: `/job-offers/${jobId}/apply`,
+            endpoint: `/admin/job-offers/${jobId}/apply`,
             method: "POST",
             data: applicationData,
         })
@@ -89,14 +92,14 @@ export const jobService = {
 
     saveJob: async (jobId: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/job-offers/${jobId}/save`,
+            endpoint: `/admin/job-offers/${jobId}/save`,
             method: "POST",
         })
     },
 
     unsaveJob: async (jobId: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/job-offers/${jobId}/save`,
+            endpoint: `/admin/job-offers/${jobId}/save`,
             method: "DELETE",
         })
     },

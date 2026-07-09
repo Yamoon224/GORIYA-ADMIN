@@ -11,14 +11,14 @@ export const interviewService = {
             averageDuration: string
             satisfaction: number
         }>>({
-            endpoint: "/interview-simulation/stats",
+            endpoint: "/admin/interview-simulation/stats",
             method: "GET",
         })
     },
 
     getSessions: async (params?: { page?: number; limit?: number; status?: InterviewStatus }) => {
         return apiRequest<IPaginatedResponse<IInterviewSession>>({
-            endpoint: "/interview-simulation/sessions",
+            endpoint: "/admin/interview-simulation/sessions",
             method: "GET",
             params,
         })
@@ -26,14 +26,14 @@ export const interviewService = {
 
     getActiveSessions: async () => {
         return apiRequest<ApiResponse<IInterviewSession[]>>({
-            endpoint: "/interview-simulation/active",
+            endpoint: "/admin/interview-simulation/active",
             method: "GET",
         })
     },
 
     getSessionHistory: async (params?: { page?: number; limit?: number }) => {
         return apiRequest<IPaginatedResponse<IInterviewSession>>({
-            endpoint: "/interview-simulation/history",
+            endpoint: "/admin/interview-simulation/history",
             method: "GET",
             params,
         })
@@ -41,14 +41,14 @@ export const interviewService = {
 
     getSessionById: async (id: string) => {
         return apiRequest<ApiResponse<IInterviewSession>>({
-            endpoint: `/interview-simulation/sessions/${id}`,
+            endpoint: `/admin/interview-simulation/sessions/${id}`,
             method: "GET",
         })
     },
 
     startSession: async (data: { candidateId: string; position: string }) => {
         return apiRequest<ApiResponse<IInterviewSession>>({
-            endpoint: "/interview-simulation/start",
+            endpoint: "/admin/interview-simulation/start",
             method: "POST",
             data,
         })
@@ -56,7 +56,7 @@ export const interviewService = {
 
     endSession: async (sessionId: string, feedback: string) => {
         return apiRequest<ApiResponse<IInterviewSession>>({
-            endpoint: `/interview-simulation/sessions/${sessionId}/end`,
+            endpoint: `/admin/interview-simulation/sessions/${sessionId}/end`,
             method: "PATCH",
             data: { feedback },
         })
@@ -64,7 +64,7 @@ export const interviewService = {
 
     deleteSession: async (id: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/interview-simulation/sessions/${id}`,
+            endpoint: `/admin/interview-simulation/sessions/${id}`,
             method: "DELETE",
         })
     },

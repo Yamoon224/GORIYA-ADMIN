@@ -15,6 +15,7 @@ import {
     Shield,
     SlidersHorizontal,
     CircleDollarSign,
+    Newspaper,
 } from "lucide-react"
 
 export const menuGroups = [
@@ -115,6 +116,11 @@ export const menuGroups = [
                 title: "Portfolios",
                 href: "/portfolios",
                 icon: FolderOpen,
+            },
+            {
+                title: "Blog",
+                href: "/blog",
+                icon: Newspaper,
             },
         ],
     },

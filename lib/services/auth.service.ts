@@ -40,8 +40,10 @@ export const authService = {
     },
 
     verifyOtp: async (email: string, code: string) => {
-        return apiRequest<ApiResponse<{ token: string; user: IUser }>>({  
-            endpoint: "/auth/verify-otp",
+        // Pas de route non-admin dédiée — /admin/auth/verify-otp n'est en
+        // réalité restreinte à aucun rôle particulier.
+        return apiRequest<ApiResponse<{ token: string; user: IUser }>>({
+            endpoint: "/admin/auth/verify-otp",
             method: "POST",
             data: { email, code },
         })

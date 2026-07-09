@@ -13,7 +13,7 @@ export const userService = {
 
     updateProfile: async (profileData: Partial<IUser>) => {
         return apiRequest<ApiResponse<IUser>>({
-            endpoint: "/user/profile",
+            endpoint: "/admin/user/profile",
             method: "PUT",
             data: profileData,
         })
@@ -23,7 +23,7 @@ export const userService = {
         const formData = new FormData()
         formData.append("avatar", file)
         return apiRequest<ApiResponse<{ avatarUrl: string }>>({
-            endpoint: "/user/avatar",
+            endpoint: "/admin/user/avatar",
             method: "POST",
             data: formData,
         })
@@ -52,7 +52,7 @@ export const userService = {
             activeUsers: number
             newUsers: number
         }>>({
-            endpoint: "/users/stats",
+            endpoint: "/users/stats", // rôle ADMIN requis
             method: "GET",
         })
     },
@@ -74,8 +74,10 @@ export const userService = {
     },
 
     updateUserStatus: async (id: string, status: UserStatus) => {
+        // Pas de route dédiée /users/{id}/status — PATCH /users/{id} accepte
+        // déjà `status` pour un appelant ADMIN (voir UsersController::update).
         return apiRequest<ApiResponse<IUser>>({
-            endpoint: `/users/${id}/status`,
+            endpoint: `/users/${id}`,
             method: "PATCH",
             data: { status },
         })

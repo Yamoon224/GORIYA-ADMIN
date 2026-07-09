@@ -10,7 +10,7 @@ export const portfolioService = {
             totalDownloads: number
             totalLikes: number
         }>>({
-            endpoint: "/portfolios/stats",
+            endpoint: "/admin/portfolios/stats",
             method: "GET",
         })
     },
@@ -25,7 +25,7 @@ export const portfolioService = {
 
     getFeaturedPortfolios: async () => {
         return apiRequest<ApiResponse<IPortfolio[]>>({
-            endpoint: "/portfolios/featured",
+            endpoint: "/admin/portfolios/featured",
             method: "GET",
         })
     },
@@ -39,14 +39,14 @@ export const portfolioService = {
 
     getPopularCategories: async () => {
         return apiRequest<ApiResponse<Array<{ name: string; count: number }>>>({
-            endpoint: "/portfolios/categories",
+            endpoint: "/admin/portfolios/categories",
             method: "GET",
         })
     },
 
     featurePortfolio: async (id: string, featured: boolean) => {
         return apiRequest<ApiResponse<IPortfolio>>({
-            endpoint: `/portfolios/${id}/feature`,
+            endpoint: `/admin/portfolios/${id}/feature`,
             method: "PATCH",
             data: { featured },
         })

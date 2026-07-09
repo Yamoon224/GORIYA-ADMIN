@@ -11,14 +11,14 @@ export const matchingService = {
             successRate: number
             pendingMatches: number
         }>>({
-            endpoint: "/matching/stats",
+            endpoint: "/admin/matching/stats",
             method: "GET",
         })
     },
 
     getRecentMatches: async (params?: { page?: number; limit?: number; status?: MatchingStatus }) => {
         return apiRequest<IPaginatedResponse<IMatchingResult>>({
-            endpoint: "/matching/recent",
+            endpoint: "/admin/matching/recent",
             method: "GET",
             params,
         })
@@ -31,7 +31,7 @@ export const matchingService = {
             f1Score: number
             algorithms: Array<{ name: string; accuracy: number }>
         }>>({
-            endpoint: "/matching/algorithms",
+            endpoint: "/admin/matching/algorithms",
             method: "GET",
         })
     },
@@ -43,14 +43,14 @@ export const matchingService = {
             message: string
             timestamp: string
         }>>>({
-            endpoint: "/matching/activity",
+            endpoint: "/admin/matching/activity",
             method: "GET",
         })
     },
 
     triggerMatching: async (candidateId: string, jobOfferId: string) => {
         return apiRequest<ApiResponse<IMatchingResult>>({
-            endpoint: "/matching/trigger",
+            endpoint: "/admin/matching/trigger",
             method: "POST",
             data: { candidateId, jobOfferId },
         })
@@ -58,7 +58,7 @@ export const matchingService = {
 
     updateMatchStatus: async (id: string, status: MatchingStatus) => {
         return apiRequest<ApiResponse<IMatchingResult>>({
-            endpoint: `/matching/${id}/status`,
+            endpoint: `/admin/matching/${id}/status`,
             method: "PATCH",
             data: { status },
         })

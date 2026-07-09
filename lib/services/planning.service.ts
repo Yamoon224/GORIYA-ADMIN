@@ -11,14 +11,14 @@ export const planningService = {
             completedEvents: number
             cancelledEvents: number
         }>>({
-            endpoint: "/planning/stats",
+            endpoint: "/admin/planning/stats",
             method: "GET",
         })
     },
 
     getEvents: async (date: string) => {
         return apiRequest<ApiResponse<ICalendarEvent[]>>({
-            endpoint: "/planning/events",
+            endpoint: "/admin/planning/events",
             method: "GET",
             params: { date },
         })
@@ -26,7 +26,7 @@ export const planningService = {
 
     getUpcomingEvents: async (limit = 10) => {
         return apiRequest<ApiResponse<ICalendarEvent[]>>({
-            endpoint: "/planning/upcoming",
+            endpoint: "/admin/planning/upcoming",
             method: "GET",
             params: { limit },
         })
@@ -34,7 +34,7 @@ export const planningService = {
 
     getEventById: async (id: string) => {
         return apiRequest<ApiResponse<ICalendarEvent>>({
-            endpoint: `/planning/events/${id}`,
+            endpoint: `/admin/planning/events/${id}`,
             method: "GET",
         })
     },
@@ -48,7 +48,7 @@ export const planningService = {
         location?: string
     }) => {
         return apiRequest<ApiResponse<ICalendarEvent>>({
-            endpoint: "/planning/events",
+            endpoint: "/admin/planning/events",
             method: "POST",
             data,
         })
@@ -64,7 +64,7 @@ export const planningService = {
         status: EventStatus
     }>) => {
         return apiRequest<ApiResponse<ICalendarEvent>>({
-            endpoint: `/planning/events/${id}`,
+            endpoint: `/admin/planning/events/${id}`,
             method: "PATCH",
             data,
         })
@@ -72,7 +72,7 @@ export const planningService = {
 
     deleteEvent: async (id: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/planning/events/${id}`,
+            endpoint: `/admin/planning/events/${id}`,
             method: "DELETE",
         })
     },

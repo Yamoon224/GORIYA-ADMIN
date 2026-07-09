@@ -27,14 +27,17 @@ export const candidatureService = {
             approuvees: number
             rejetees: number
         }>>({
-            endpoint: "/candidatures/stats",
+            endpoint: "/admin/candidatures/stats",
             method: "GET",
         })
     },
 
     updateCandidatureStatus: async (id: string, status: CandidatureStatus) => {
+        // Pas de route dédiée /candidatures/{id}/status côté backend — PATCH
+        // /candidatures/{id} accepte déjà `status` (ADMIN outrepasse la
+        // vérification de propriété, voir AuthorizesOwnership).
         return apiRequest<ApiResponse<ICandidature>>({
-            endpoint: `/candidatures/${id}/status`,
+            endpoint: `/candidatures/${id}`,
             method: "PATCH",
             data: { status },
         })

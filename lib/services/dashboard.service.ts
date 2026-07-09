@@ -10,14 +10,14 @@ export const dashboardService = {
             analyzedCVs: number
             jobOffers: number
         }>>({
-            endpoint: "/dashboard/stats",
+            endpoint: "/admin/dashboard/stats",
             method: "GET",
         })
     },
 
     getPerformanceData: async (period?: string) => {
         return apiRequest<ApiResponse<Array<{ month: string; value: number; label?: string }>>>({
-            endpoint: "/dashboard/performance",
+            endpoint: "/admin/dashboard/performance",
             method: "GET",
             params: period ? { period } : undefined,
         })
@@ -30,14 +30,14 @@ export const dashboardService = {
             profileViews: number
             savedJobs: number
         }>>({
-            endpoint: "/dashboard/stats",
+            endpoint: "/admin/dashboard/stats",
             method: "GET",
         })
     },
 
     getRecentApplications: async (limit = 5) => {
         return apiRequest<ApiResponse<ICandidature[]>>({
-            endpoint: "/dashboard/recent-applications",
+            endpoint: "/admin/dashboard/recent-applications",
             method: "GET",
             params: { limit },
         })
@@ -45,7 +45,7 @@ export const dashboardService = {
 
     getRecommendedJobs: async (limit = 6) => {
         return apiRequest<ApiResponse<IJobOffer[]>>({
-            endpoint: "/dashboard/recommended-jobs",
+            endpoint: "/admin/dashboard/recommended-jobs",
             method: "GET",
             params: { limit },
         })
@@ -56,7 +56,7 @@ export const dashboardService = {
             views: Array<{ date: string; count: number }>
             total: number
         }>>({
-            endpoint: "/dashboard/profile-views",
+            endpoint: "/admin/dashboard/profile-views",
             method: "GET",
             params: { days },
         })

@@ -33,14 +33,14 @@ export const companyService = {
             inactive: number
             newThisMonth: number
         }>>({
-            endpoint: "/companies/stats",
+            endpoint: "/admin/companies/stats",
             method: "GET",
         })
     },
 
     getSectorDistribution: async () => {
         return apiRequest<ApiResponse<Array<{ name: string; count: number; percentage: number }>>>({
-            endpoint: "/companies/sectors",
+            endpoint: "/admin/companies/sectors",
             method: "GET",
         })
     },
@@ -63,7 +63,7 @@ export const companyService = {
 
     updateCompanyStatus: async (id: string, status: CompanyStatus) => {
         return apiRequest<ApiResponse<ICompany>>({
-            endpoint: `/companies/${id}/status`,
+            endpoint: `/admin/companies/${id}/status`,
             method: "PATCH",
             data: { status },
         })
@@ -78,14 +78,14 @@ export const companyService = {
 
     followCompany: async (companyId: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/companies/${companyId}/follow`,
+            endpoint: `/admin/companies/${companyId}/follow`,
             method: "POST",
         })
     },
 
     unfollowCompany: async (companyId: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/companies/${companyId}/follow`,
+            endpoint: `/admin/companies/${companyId}/follow`,
             method: "DELETE",
         })
     },
@@ -99,7 +99,7 @@ export const companyService = {
 
     getCompanyJobs: async (companyId: string) => {
         return apiRequest<ApiResponse<IJobOffer[]>>({
-            endpoint: `/companies/${companyId}/jobs`,
+            endpoint: `/admin/companies/${companyId}/jobs`,
             method: "GET",
         })
     },

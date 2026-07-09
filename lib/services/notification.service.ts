@@ -4,21 +4,21 @@ import { apiRequest } from "@/lib/api-client-http"
 export const notificationService = {
     getNotifications: async () => {
         return apiRequest<ApiResponse<any[]>>({
-            endpoint: "/notifications",
+            endpoint: "/admin/notifications",
             method: "GET",
         })
     },
 
     markAsRead: async (notificationId: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/notifications/${notificationId}/read`,
+            endpoint: `/admin/notifications/${notificationId}/read`,
             method: "PUT",
         })
     },
 
     markAllAsRead: async () => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: "/notifications/read-all",
+            endpoint: "/admin/notifications/read-all",
             method: "PUT",
         })
     },
@@ -31,7 +31,7 @@ export const notificationService = {
         },
     ) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: "/notifications/settings",
+            endpoint: "/admin/notifications/settings",
             method: "PUT",
             data: settings,
         })

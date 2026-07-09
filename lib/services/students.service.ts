@@ -6,7 +6,7 @@ import { UserStatus } from "@/lib/@types/enums"
 export const studentsService = {
     getStudents: async (params?: { page?: number; limit?: number; search?: string; status?: UserStatus }) => {
         return apiRequest<IPaginatedResponse<IUser>>({
-            endpoint: "/students/paginate",
+            endpoint: "/admin/students/paginate",
             method: "GET",
             params,
         })
@@ -14,7 +14,7 @@ export const studentsService = {
 
     getStudentById: async (id: string) => {
         return apiRequest<ApiResponse<IUser>>({
-            endpoint: `/students/${id}`,
+            endpoint: `/admin/students/${id}`,
             method: "GET",
         })
     },
@@ -26,14 +26,14 @@ export const studentsService = {
             inactive: number
             newThisMonth: number
         }>>({
-            endpoint: "/students/stats",
+            endpoint: "/admin/students/stats",
             method: "GET",
         })
     },
 
     createStudent: async (data: Partial<IUser> & { password: string }) => {
         return apiRequest<ApiResponse<IUser>>({
-            endpoint: "/students",
+            endpoint: "/admin/students",
             method: "POST",
             data,
         })
@@ -41,7 +41,7 @@ export const studentsService = {
 
     updateStudent: async (id: string, data: Partial<IUser>) => {
         return apiRequest<ApiResponse<IUser>>({
-            endpoint: `/students/${id}`,
+            endpoint: `/admin/students/${id}`,
             method: "PATCH",
             data,
         })
@@ -49,14 +49,14 @@ export const studentsService = {
 
     deleteStudent: async (id: string) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: `/students/${id}`,
+            endpoint: `/admin/students/${id}`,
             method: "DELETE",
         })
     },
 
     updateStudentStatus: async (id: string, status: UserStatus) => {
         return apiRequest<ApiResponse<IUser>>({
-            endpoint: `/students/${id}/status`,
+            endpoint: `/admin/students/${id}/status`,
             method: "PATCH",
             data: { status },
         })
@@ -64,7 +64,7 @@ export const studentsService = {
 
     exportCSV: async () => {
         return apiRequest<Blob>({
-            endpoint: "/students/export",
+            endpoint: "/admin/students/export",
             method: "GET",
             params: { format: "csv" },
             responseType: "blob",

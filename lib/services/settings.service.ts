@@ -18,14 +18,14 @@ export interface ISystemSettings {
 export const settingsService = {
     getSettings: async () => {
         return apiRequest<ApiResponse<ISystemSettings>>({
-            endpoint: "/settings",
+            endpoint: "/admin/settings",
             method: "GET",
         })
     },
 
     updateSettings: async (data: Partial<ISystemSettings>) => {
         return apiRequest<ApiResponse<ISystemSettings>>({
-            endpoint: "/settings",
+            endpoint: "/admin/settings",
             method: "PATCH",
             data,
         })
@@ -39,7 +39,7 @@ export const settingsService = {
             senderName: string
             senderEmail: string
         }>>({
-            endpoint: "/settings/email",
+            endpoint: "/admin/settings/email",
             method: "GET",
         })
     },
@@ -53,7 +53,7 @@ export const settingsService = {
         senderEmail: string
     }) => {
         return apiRequest<ApiResponse<null>>({
-            endpoint: "/settings/email",
+            endpoint: "/admin/settings/email",
             method: "PATCH",
             data,
         })
@@ -61,7 +61,7 @@ export const settingsService = {
 
     testEmailConfig: async () => {
         return apiRequest<ApiResponse<{ success: boolean; message: string }>>({
-            endpoint: "/settings/email/test",
+            endpoint: "/admin/settings/email/test",
             method: "POST",
         })
     },
