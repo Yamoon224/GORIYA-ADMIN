@@ -177,3 +177,22 @@ export interface IMatchingResult {
     createdAt: Date;
     updatedAt: Date;
 }
+
+// ─────────────────────────────────────────────
+export interface IAuditLog {
+    id: string;
+    userId: string | null;
+    userName: string | null;
+    userEmail: string | null;
+    userRole: string | null;
+    action: string;
+    auditableType: string | null;
+    auditableId: string | null;
+    oldValues: Record<string, unknown> | null;
+    newValues: Record<string, unknown> | null;
+    url: string | null;
+    method: string | null;
+    ipAddress: string | null;
+    userAgent: string | null;
+    createdAt: Date;
+}

@@ -16,6 +16,8 @@ import {
     SlidersHorizontal,
     CircleDollarSign,
     Newspaper,
+    ScrollText,
+    GraduationCap,
 } from "lucide-react"
 
 export const menuGroups = [
@@ -109,8 +111,8 @@ export const menuGroups = [
         items: [
             {
                 title: "Formations",
-                href: "/simulation-entretiens",
-                icon: FileBarChart,
+                href: "/formations",
+                icon: GraduationCap,
             },
             {
                 title: "Portfolios",
@@ -136,6 +138,11 @@ export const menuGroups = [
                 title: "Sécurité",
                 href: "/parametres",
                 icon: Shield,
+            },
+            {
+                title: "Journal d'audit",
+                href: "/audit-logs",
+                icon: ScrollText,
             },
             {
                 title: "Paramètres",
